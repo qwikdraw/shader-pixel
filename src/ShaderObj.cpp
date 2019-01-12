@@ -3,6 +3,7 @@
 GLuint ShaderObj::_camPosID;
 GLuint ShaderObj::_transformID;
 GLuint ShaderObj::_screenToWorldID;
+GLuint ShaderObj::_worldToScreenID;
 GLuint ShaderObj::_squareID;
 GLuint ShaderObj::_VAO;
 
@@ -17,6 +18,7 @@ ShaderObj::ShaderObj(const std::string& fragpath)
 		_transformID = glGetUniformLocation(_program->ID(), "transform");
 		_camPosID = glGetUniformLocation(_program->ID(), "camPos");
 		_screenToWorldID = glGetUniformLocation(_program->ID(), "screenToWorld");
+		_worldToScreenID = glGetUniformLocation(_program->ID(), "worldToScreen");
 		_loadArrayBuffers();
 		_makeVAO();
 		_init = true;
@@ -53,6 +55,8 @@ void ShaderObj::Render(const CameraData& cam_data, const glm::mat4& transform)
 
 	glUniformMatrix4fv(_screenToWorldID, 1, GL_FALSE,
 		glm::value_ptr(screenToWorld));
+	glUniformMatrix4fv(_worldToScreenID, 1, GL_FALSE,
+		glm::value_ptr(cam_data.worldToScreen));
 
 	glm::mat4 inverse_transform = glm::inverse(transform);
 	glUniformMatrix4fv(_transformID, 1, GL_FALSE,

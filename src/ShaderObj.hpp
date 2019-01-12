@@ -12,6 +12,7 @@ class ShaderObj
 	static GLuint _camPosID;
 	static GLuint _transformID;
 	static GLuint _screenToWorldID;
+	static GLuint _worldToScreenID;
 	static GLuint _squareID;
 	static GLuint _VAO;
 
