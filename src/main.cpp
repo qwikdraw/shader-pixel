@@ -40,7 +40,14 @@ int	main(void)
 		window.Clear();
 		cam.Update(clock.Delta());
 		scene.Render(cam.GetCameraData());
-		sphere.Render(cam.GetCameraData(), glm::mat4(1), clock.Total());
+
+		glm::mat4 tr = glm::mat4(2);
+		tr[3][3] = 1;
+		sphere.Render(cam.GetCameraData(), tr, clock.Total());
+
+		sphere.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1), glm::vec3(0, 3, 0)), clock.Total());
+
 		sky.Render(cam.GetCameraData());
 		fps.Render(window);
 		window.Render();

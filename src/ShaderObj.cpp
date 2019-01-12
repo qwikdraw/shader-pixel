@@ -2,6 +2,7 @@
 
 GLuint ShaderObj::_camPosID;
 GLuint ShaderObj::_transformID;
+GLuint ShaderObj::_inverseTransformID;
 GLuint ShaderObj::_screenToWorldID;
 GLuint ShaderObj::_worldToScreenID;
 GLuint ShaderObj::_squareID;
@@ -22,6 +23,7 @@ ShaderObj::ShaderObj(const std::string& fragpath)
 	if (!_init)
 	{
 		_transformID = glGetUniformLocation(_program->ID(), "transform");
+		_inverseTransformID = glGetUniformLocation(_program->ID(), "inverseTransform");
 		_camPosID = glGetUniformLocation(_program->ID(), "camPos");
 		_screenToWorldID = glGetUniformLocation(_program->ID(), "screenToWorld");
 		_worldToScreenID = glGetUniformLocation(_program->ID(), "worldToScreen");
@@ -88,8 +90,10 @@ void ShaderObj::Render(
 		glm::value_ptr(cam_data.worldToScreen));
 
 	glm::mat4 inverse_transform = glm::inverse(transform);
-	glUniformMatrix4fv(_transformID, 1, GL_FALSE,
+	glUniformMatrix4fv(_inverseTransformID, 1, GL_FALSE,
 		glm::value_ptr(inverse_transform));
+	glUniformMatrix4fv(_transformID, 1, GL_FALSE,
+		glm::value_ptr(transform));
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }

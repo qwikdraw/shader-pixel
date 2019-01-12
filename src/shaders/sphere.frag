@@ -2,8 +2,8 @@
 
 #define MAX_LIGHTS 100
 
-in vec3 ray_p;
-in vec3 ray_v;
+in vec3 ray_tp;
+in vec3 ray_tv;
 
 uniform mat4 worldToScreen;
 uniform mat4 transform;
@@ -39,8 +39,11 @@ vec3 shader(vec3 rp, vec3 rv)
 
 	for (int i = 0; i < lightNum; i++)
 	{
-		vec3 modify = vec3(0.1, 0.3, 0.7) * time * 0.3;
-		col += lightColor[0] * dot(normalize(lightPos[i] - intersect), normal) * modify;
+		vec3 lp = lightPos[i] +
+			vec3(5, 9, 21) * sin(time) +
+			vec3(-10, 20, -10) * sin(time / 3.2144225);
+		col += lightColor[0] * dot(normalize(lp - intersect), normal) *
+			normalize(abs(lp));
 	}
 	color = col / (col + vec3(1));
 
@@ -49,6 +52,7 @@ vec3 shader(vec3 rp, vec3 rv)
 
 void main()
 {
-	vec4 screenPoint = worldToScreen * vec4(shader(ray_p, normalize(ray_v)), 1);
+	vec3 intersect = shader(ray_tp, normalize(ray_tv));
+	vec4 screenPoint = worldToScreen * transform * vec4(intersect, 1);
 	gl_FragDepth = (screenPoint.z / screenPoint.w + 1) / 2;
 }
