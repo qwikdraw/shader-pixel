@@ -6,6 +6,7 @@
 #include "ObjRender.hpp"
 #include "Scene.hpp"
 #include "ShaderObj.hpp"
+#include "Light.hpp"
 
 int	main(void)
 {
@@ -28,6 +29,9 @@ int	main(void)
 	ObjRender::Init();
 	ShaderObj sphere("src/shaders/sphere.frag");
 	Scene scene;
+
+	Light l1(glm::vec3(1, 1, 1), glm::vec3(0.3, 0.1, 0.4));
+	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
 
 	while (!window.ShouldClose())
 	{

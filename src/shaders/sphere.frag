@@ -1,18 +1,24 @@
 #version 410 core
 
+#define MAX_LIGHTS 100
+
 in vec3 ray_p;
 in vec3 ray_v;
 
 uniform mat4 worldToScreen;
 uniform mat4 transform;
 
+uniform vec3 lightPos[MAX_LIGHTS];
+uniform vec3 lightColor[MAX_LIGHTS];
+uniform int lightNum;
+
 out vec3 color;
 
-void main()
+// returns intersect
+vec3 shader(vec3 rp, vec3 rv)
 {
-	vec3 vect = normalize(ray_v);
-	float dist1 = dot(vect, ray_p);
-	float discrim = dist1 * dist1 - dot(ray_p, ray_p) + 1;
+	float dist1 = dot(rv, rp);
+	float discrim = dist1 * dist1 - dot(rp, rp) + 1;
 
 	if (discrim < 0)
 		discard;
@@ -25,10 +31,21 @@ void main()
 		dist = max(dist1, dist2);
 	if (dist < 0)
 		discard;
-	vec3 intersect = ray_p + vect * dist;
+	vec3 intersect = rp + rv * dist;
 	vec3 normal = normalize(intersect);
-	color = dot(ray_v, -normal) * vec3(1, 1 * clamp(dist / 10, 0, 1), 0.4);
+	vec3 col = vec3(0);
 
-	vec4 screenPoint = worldToScreen * vec4(intersect, 1);
+	for (int i = 0; i < lightNum; i++)
+	{
+		col += lightColor[0] * dot(normalize(lightPos[i] - intersect), normal);
+	}
+	color = col / (col + vec3(1));
+
+	return intersect;
+}
+
+void main()
+{
+	vec4 screenPoint = worldToScreen * vec4(shader(ray_p, normalize(ray_v)), 1);
 	gl_FragDepth = (screenPoint.z / screenPoint.w + 1) / 2;
 }

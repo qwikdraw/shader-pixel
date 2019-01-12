@@ -2,6 +2,7 @@
 
 #include "ShadingProgram.hpp"
 #include "FreeCamera.hpp"
+#include "Light.hpp"
 #include "util_inc.hpp"
 #include <iostream>
 
@@ -15,6 +16,10 @@ class ShaderObj
 	static GLuint _worldToScreenID;
 	static GLuint _squareID;
 	static GLuint _VAO;
+
+	static GLuint _lightPosID;
+	static GLuint _lightColorID;
+	static GLuint _lightNumID;
 
 	static bool _init;
 

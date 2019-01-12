@@ -10,7 +10,8 @@ Texture \
 Text \
 ObjRender \
 Scene \
-ShaderObj
+ShaderObj \
+Light
 
 SRC_DIR = src
 OBJ_DIR = obj

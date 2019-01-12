@@ -7,6 +7,10 @@ GLuint ShaderObj::_worldToScreenID;
 GLuint ShaderObj::_squareID;
 GLuint ShaderObj::_VAO;
 
+GLuint ShaderObj::_lightPosID;
+GLuint ShaderObj::_lightColorID;
+GLuint ShaderObj::_lightNumID;
+
 bool ShaderObj::_init = false;
 
 // argument is ignored for now... just using hardcoded shader
@@ -19,6 +23,9 @@ ShaderObj::ShaderObj(const std::string& fragpath)
 		_camPosID = glGetUniformLocation(_program->ID(), "camPos");
 		_screenToWorldID = glGetUniformLocation(_program->ID(), "screenToWorld");
 		_worldToScreenID = glGetUniformLocation(_program->ID(), "worldToScreen");
+		_lightPosID = glGetUniformLocation(_program->ID(), "lightPos");
+		_lightColorID = glGetUniformLocation(_program->ID(), "lightColor");
+		_lightNumID = glGetUniformLocation(_program->ID(), "lightNum");
 		_loadArrayBuffers();
 		_makeVAO();
 		_init = true;
@@ -49,6 +56,20 @@ void ShaderObj::Render(const CameraData& cam_data, const glm::mat4& transform)
 {
 	_program->Use();
 	glBindVertexArray(_VAO);
+
+	int size = Light::positions.size();
+	size = std::min(size, 99);
+	if (size)
+	{
+		glUniform3fv(_lightPosID,
+			size,
+			reinterpret_cast<const GLfloat*>(&(Light::positions[0].x)));
+		glUniform3fv(_lightColorID,
+			size,
+			reinterpret_cast<const GLfloat*>(&(Light::colors[0].x)));
+	}
+	glUniform1i(_lightNumID, size);
+
 	glUniform3fv(_camPosID, 1, &cam_data.position[0]);
 
 	glm::mat4 screenToWorld = glm::inverse(cam_data.worldToScreen);
