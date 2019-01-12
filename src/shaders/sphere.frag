@@ -12,6 +12,8 @@ uniform vec3 lightPos[MAX_LIGHTS];
 uniform vec3 lightColor[MAX_LIGHTS];
 uniform int lightNum;
 
+uniform float time;
+
 out vec3 color;
 
 // returns intersect
@@ -37,7 +39,8 @@ vec3 shader(vec3 rp, vec3 rv)
 
 	for (int i = 0; i < lightNum; i++)
 	{
-		col += lightColor[0] * dot(normalize(lightPos[i] - intersect), normal);
+		vec3 modify = vec3(0.1, 0.3, 0.7) * time * 0.3;
+		col += lightColor[0] * dot(normalize(lightPos[i] - intersect), normal) * modify;
 	}
 	color = col / (col + vec3(1));
 

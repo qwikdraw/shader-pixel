@@ -11,6 +11,8 @@ GLuint ShaderObj::_lightPosID;
 GLuint ShaderObj::_lightColorID;
 GLuint ShaderObj::_lightNumID;
 
+GLuint ShaderObj::_timeID;
+
 bool ShaderObj::_init = false;
 
 // argument is ignored for now... just using hardcoded shader
@@ -26,6 +28,7 @@ ShaderObj::ShaderObj(const std::string& fragpath)
 		_lightPosID = glGetUniformLocation(_program->ID(), "lightPos");
 		_lightColorID = glGetUniformLocation(_program->ID(), "lightColor");
 		_lightNumID = glGetUniformLocation(_program->ID(), "lightNum");
+		_timeID = glGetUniformLocation(_program->ID(), "time");
 		_loadArrayBuffers();
 		_makeVAO();
 		_init = true;
@@ -52,7 +55,10 @@ void ShaderObj::_makeVAO()
 	glBindVertexArray(0);
 }
 
-void ShaderObj::Render(const CameraData& cam_data, const glm::mat4& transform)
+void ShaderObj::Render(
+	const CameraData& cam_data,
+	const glm::mat4& transform,
+	float total_time)
 {
 	_program->Use();
 	glBindVertexArray(_VAO);
@@ -69,6 +75,8 @@ void ShaderObj::Render(const CameraData& cam_data, const glm::mat4& transform)
 			reinterpret_cast<const GLfloat*>(&(Light::colors[0].x)));
 	}
 	glUniform1i(_lightNumID, size);
+
+	glUniform1f(_timeID, total_time);
 
 	glUniform3fv(_camPosID, 1, &cam_data.position[0]);
 

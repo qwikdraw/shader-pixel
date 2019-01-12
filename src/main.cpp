@@ -30,7 +30,6 @@ int	main(void)
 	ShaderObj sphere("src/shaders/sphere.frag");
 	Scene scene;
 
-	Light l1(glm::vec3(1, 1, 1), glm::vec3(0.3, 0.1, 0.4));
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
 
 	while (!window.ShouldClose())
@@ -41,7 +40,7 @@ int	main(void)
 		window.Clear();
 		cam.Update(clock.Delta());
 		scene.Render(cam.GetCameraData());
-		sphere.Render(cam.GetCameraData(), glm::mat4(1));
+		sphere.Render(cam.GetCameraData(), glm::mat4(1), clock.Total());
 		sky.Render(cam.GetCameraData());
 		fps.Render(window);
 		window.Render();
