@@ -14,7 +14,7 @@ uniform int lightNum;
 
 uniform float time;
 
-out vec3 color;
+out vec4 color;
 
 // returns intersect
 vec3 shader(vec3 rp, vec3 rv)
@@ -45,7 +45,7 @@ vec3 shader(vec3 rp, vec3 rv)
 		col += lightColor[0] * dot(normalize(lp - intersect), normal) *
 			normalize(abs(lp));
 	}
-	color = col / (col + vec3(1));
+	color = vec4(col / (col + vec3(1)), 1);
 
 	return intersect;
 }

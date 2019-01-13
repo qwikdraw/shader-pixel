@@ -15,7 +15,7 @@ class ShaderObj
 	static GLuint _inverseTransformID;
 	static GLuint _screenToWorldID;
 	static GLuint _worldToScreenID;
-	static GLuint _squareID;
+	static GLuint _cubeID;
 	static GLuint _VAO;
 
 	static GLuint _lightPosID;
