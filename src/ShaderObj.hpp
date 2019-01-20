@@ -1,35 +1,40 @@
 #pragma once
 
+#include "Transparency.hpp"
 #include "ShadingProgram.hpp"
 #include "FreeCamera.hpp"
 #include "Light.hpp"
 #include "util_inc.hpp"
 #include <iostream>
 
-class ShaderObj
+class ShaderObj : public Transparency
 {
 	static constexpr const char* _vertexPath = "src/shaders/shaderobj.vert";
 
-	static GLuint _camPosID;
-	static GLuint _transformID;
-	static GLuint _inverseTransformID;
-	static GLuint _screenToWorldID;
-	static GLuint _worldToScreenID;
-	static GLuint _cubeID;
-	static GLuint _VAO;
+	GLuint _camPosID;
+	GLuint _transformID;
+	GLuint _inverseTransformID;
+	GLuint _screenToWorldID;
+	GLuint _worldToScreenID;
+	GLuint _cubeID;
+	GLuint _VAO;
 
-	static GLuint _lightPosID;
-	static GLuint _lightColorID;
-	static GLuint _lightNumID;
+	GLuint _lightPosID;
+	GLuint _lightColorID;
+	GLuint _lightNumID;
 
-	static GLuint _timeID;
-
-	static bool _init;
+	GLuint _timeID;
 
 	ShadingProgram* _program;
 
+	float _total_time;
+
 	void _loadArrayBuffers();
 	void _makeVAO();
+
+	void _render(
+		const CameraData& cam_data,
+		const glm::mat4& transform);
 
 public:
 	ShaderObj(const std::string& fragpath);
