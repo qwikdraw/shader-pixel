@@ -7,6 +7,7 @@
 #include "Scene.hpp"
 #include "ShaderObj.hpp"
 #include "Light.hpp"
+#include "Transparency.hpp"
 
 int	main(void)
 {
@@ -28,6 +29,7 @@ int	main(void)
 	);
 	ObjRender::Init();
 	ShaderObj mandelbox("src/shaders/mandelbox.frag");
+	ShaderObj sphere("src/shaders/sphere.frag");
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
@@ -40,14 +42,18 @@ int	main(void)
 		window.Clear();
 		cam.Update(clock.Delta());
 		scene.Render(cam.GetCameraData());
+		sky.Render(cam.GetCameraData());
 
-		glm::mat4 tr = glm::mat4(2);
-		tr[3][3] = 1;
+		sphere.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1), glm::vec3(3, 2, 3)), clock.Total());
 
 		mandelbox.Render(cam.GetCameraData(),
 			glm::translate(glm::mat4(1), glm::vec3(0, 3, 0)), clock.Total());
 
-		sky.Render(cam.GetCameraData());
+		sphere.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1), glm::vec3(0, 2, 3)), clock.Total());
+
+		Transparency::RenderAll();
 		fps.Render(window);
 		window.Render();
 		if (window.Key(GLFW_KEY_ESCAPE))

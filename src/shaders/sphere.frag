@@ -16,14 +16,16 @@ uniform float time;
 
 out vec4 color;
 
-// returns intersect
-vec3 shader(vec3 rp, vec3 rv)
+void shader(vec3 rp, vec3 rv)
 {
 	float dist1 = dot(rv, rp);
 	float discrim = dist1 * dist1 - dot(rp, rp) + 1;
 
 	if (discrim < 0)
-		discard;
+	{
+		color = vec4(0, 0, 0, 0);
+		return;
+	}
 	discrim = sqrt(discrim);
 	float dist2 = -dist1 - discrim;
 	dist1 = -dist1 + discrim;
@@ -32,7 +34,10 @@ vec3 shader(vec3 rp, vec3 rv)
 	if (dist < 0)
 		dist = max(dist1, dist2);
 	if (dist < 0)
-		discard;
+	{
+		color = vec4(0, 0, 0, 0);
+		return;
+	}
 	vec3 intersect = rp + rv * dist;
 	vec3 normal = normalize(intersect);
 	vec3 col = vec3(0);
@@ -46,13 +51,9 @@ vec3 shader(vec3 rp, vec3 rv)
 			normalize(abs(lp));
 	}
 	color = vec4(col / (col + vec3(1)), 1);
-
-	return intersect;
 }
 
 void main()
 {
-	vec3 intersect = shader(ray_tp, normalize(ray_tv));
-	vec4 screenPoint = worldToScreen * transform * vec4(intersect, 1);
-	gl_FragDepth = (screenPoint.z / screenPoint.w + 1) / 2;
+	shader(ray_tp, normalize(ray_tv));
 }

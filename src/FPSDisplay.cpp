@@ -38,6 +38,7 @@ void	FPSDisplay::Render(Window& window)
 		_text = new Text(ss.str());
 	}
 	window.SetRenderMask(0, 0.975, 0.05, 0.025);
-	_text->Render(window.GetAspect());
+	if (_text)
+		_text->Render(window.GetAspect());
 	window.RemoveRenderMask();
 }

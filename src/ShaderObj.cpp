@@ -1,40 +1,19 @@
 #include "ShaderObj.hpp"
 
-GLuint ShaderObj::_camPosID;
-GLuint ShaderObj::_transformID;
-GLuint ShaderObj::_inverseTransformID;
-GLuint ShaderObj::_screenToWorldID;
-GLuint ShaderObj::_worldToScreenID;
-GLuint ShaderObj::_cubeID;
-GLuint ShaderObj::_VAO;
-
-GLuint ShaderObj::_lightPosID;
-GLuint ShaderObj::_lightColorID;
-GLuint ShaderObj::_lightNumID;
-
-GLuint ShaderObj::_timeID;
-
-bool ShaderObj::_init = false;
-
-// argument is ignored for now... just using hardcoded shader
 ShaderObj::ShaderObj(const std::string& fragpath)
 {
 	_program = new ShadingProgram(_vertexPath, fragpath);
-	if (!_init)
-	{
-		_transformID = glGetUniformLocation(_program->ID(), "transform");
-		_inverseTransformID = glGetUniformLocation(_program->ID(), "inverseTransform");
-		_camPosID = glGetUniformLocation(_program->ID(), "camPos");
-		_screenToWorldID = glGetUniformLocation(_program->ID(), "screenToWorld");
-		_worldToScreenID = glGetUniformLocation(_program->ID(), "worldToScreen");
-		_lightPosID = glGetUniformLocation(_program->ID(), "lightPos");
-		_lightColorID = glGetUniformLocation(_program->ID(), "lightColor");
-		_lightNumID = glGetUniformLocation(_program->ID(), "lightNum");
-		_timeID = glGetUniformLocation(_program->ID(), "time");
-		_loadArrayBuffers();
-		_makeVAO();
-		_init = true;
-	}
+	_transformID = glGetUniformLocation(_program->ID(), "transform");
+	_inverseTransformID = glGetUniformLocation(_program->ID(), "inverseTransform");
+	_camPosID = glGetUniformLocation(_program->ID(), "camPos");
+	_screenToWorldID = glGetUniformLocation(_program->ID(), "screenToWorld");
+	_worldToScreenID = glGetUniformLocation(_program->ID(), "worldToScreen");
+	_lightPosID = glGetUniformLocation(_program->ID(), "lightPos");
+	_lightColorID = glGetUniformLocation(_program->ID(), "lightColor");
+	_lightNumID = glGetUniformLocation(_program->ID(), "lightNum");
+	_timeID = glGetUniformLocation(_program->ID(), "time");
+	_loadArrayBuffers();
+	_makeVAO();
 }
 
 void ShaderObj::_loadArrayBuffers()
@@ -105,10 +84,9 @@ void ShaderObj::_makeVAO()
 	glBindVertexArray(0);
 }
 
-void ShaderObj::Render(
+void ShaderObj::_render(
 	const CameraData& cam_data,
-	const glm::mat4& transform,
-	float total_time)
+	const glm::mat4& transform)
 {
 	_program->Use();
 	glBindVertexArray(_VAO);
@@ -126,7 +104,7 @@ void ShaderObj::Render(
 	}
 	glUniform1i(_lightNumID, size);
 
-	glUniform1f(_timeID, total_time);
+	glUniform1f(_timeID, _total_time);
 
 	glUniform3fv(_camPosID, 1, &cam_data.position[0]);
 
@@ -152,4 +130,13 @@ void ShaderObj::Render(
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
+}
+
+void ShaderObj::Render(
+	const CameraData& cam_data,
+	const glm::mat4& transform,
+	float total_time)
+{
+	_total_time = total_time;
+	_addRender(cam_data, transform);
 }

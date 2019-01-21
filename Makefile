@@ -11,7 +11,8 @@ Text \
 ObjRender \
 Scene \
 ShaderObj \
-Light
+Light \
+Transparency
 
 SRC_DIR = src
 OBJ_DIR = obj
