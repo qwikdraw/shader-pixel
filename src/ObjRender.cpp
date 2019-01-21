@@ -102,6 +102,13 @@ ObjRender::ObjRender(const std::string& filepath)
 	_loadTexture(_texDir + textures[0]);
 }
 
+ObjRender::~ObjRender()
+{
+	glDeleteVertexArrays(1, &_VAO);
+	glDeleteBuffers(1, &_trianglesID);
+	glDeleteBuffers(1, &_uvsID);
+	glDeleteBuffers(1, &_normalsID);
+}
 
 void
 ObjRender::_loadArrayBuffers(

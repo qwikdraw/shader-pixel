@@ -47,6 +47,7 @@ public:
 	static void Init();
 
 	ObjRender(const std::string& filepath);
+	~ObjRender();
 
 	// render transforms.size() objects
 	void Render(
