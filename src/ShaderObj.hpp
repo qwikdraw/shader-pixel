@@ -38,6 +38,7 @@ class ShaderObj : public Transparency
 
 public:
 	ShaderObj(const std::string& fragpath);
+	~ShaderObj();
 
 	void Render(
 		const CameraData& cam_data,

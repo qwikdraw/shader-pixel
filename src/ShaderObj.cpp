@@ -16,6 +16,13 @@ ShaderObj::ShaderObj(const std::string& fragpath)
 	_makeVAO();
 }
 
+ShaderObj::~ShaderObj()
+{
+	delete _program;
+	glDeleteVertexArrays(1, &_VAO);
+	glDeleteBuffers(1, &_cubeID);
+}
+
 void ShaderObj::_loadArrayBuffers()
 {
 	const GLfloat cube[] = {
