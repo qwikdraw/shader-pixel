@@ -29,6 +29,7 @@ int	main(void)
 	);
 	ObjRender::Init();
 	ShaderObj mandelbox("src/shaders/mandelbox.frag");
+	ShaderObj sphere("src/shaders/sphere.frag");
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
