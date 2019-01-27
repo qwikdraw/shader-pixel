@@ -7,11 +7,6 @@
 
 ShadingProgram* ObjRender::_program = nullptr;
 
-GLuint ObjRender::_worldToScreenID;
-GLuint ObjRender::_camPosID;
-GLuint ObjRender::_texLocID;
-GLuint ObjRender::_transformID;
-
 static void
 get_mesh_data(
 	const std::string& filepath,
@@ -74,10 +69,6 @@ get_mesh_data(
 void ObjRender::Init()
 {
 	_program = new ShadingProgram(_vertexPath, _fragPath);
-	_worldToScreenID = glGetUniformLocation(_program->ID(), "worldToScreen");
-	_transformID = glGetUniformLocation(_program->ID(), "transform");
-	_camPosID = glGetUniformLocation(_program->ID(), "camPos");
-	_texLocID = glGetUniformLocation(_program->ID(), "tex");
 }
 
 
@@ -193,14 +184,15 @@ void ObjRender::Render(
 	const CameraData& cam_data,
 	const std::vector<glm::mat4>& transforms)
 {
+	_program->Update();
 	_program->Use();
 	glBindTexture(GL_TEXTURE_2D, _texID);
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(_texLocID, 0);
+	glUniform1i(_program->Uniform("tex"), 0);
 
 	glBindVertexArray(_VAO);
-	glUniform3fv(_camPosID, 1, &cam_data.position[0]);
-	glUniformMatrix4fv(_worldToScreenID, 1, GL_FALSE,
+	glUniform3fv(_program->Uniform("worldToScreen"), 1, &cam_data.position[0]);
+	glUniformMatrix4fv(_program->Uniform("worldToScreen"), 1, GL_FALSE,
 		glm::value_ptr(cam_data.worldToScreen));
 
 
@@ -209,7 +201,7 @@ void ObjRender::Render(
 	glCullFace(GL_BACK);
 	for (auto& transform : transforms)
 	{
-		glUniformMatrix4fv(_transformID, 1, GL_FALSE,
+		glUniformMatrix4fv(_program->Uniform("transform"), 1, GL_FALSE,
 			glm::value_ptr(transform));
 		glDrawArrays(GL_TRIANGLES, 0, _vertexCount);
 	}

@@ -19,12 +19,6 @@ class ObjRender
 
 	static ShadingProgram* _program;
 
-	// uniforms
-	static GLuint _worldToScreenID;
-	static GLuint _camPosID;
-	static GLuint _texLocID;
-	static GLuint _transformID;
-
 	GLuint _texID;
 	GLuint _trianglesID;
 	GLuint _uvsID;
