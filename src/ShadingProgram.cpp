@@ -1,13 +1,18 @@
 #include "ShadingProgram.hpp"
 
-ShadingProgram::ShadingProgram(std::string vp, std::string fp)
+std::list<ShadingProgram*> ShadingProgram::_updateList;
+
+ShadingProgram::ShadingProgram(std::string vp, std::string fp, bool update)
 {
+	_shouldUpdate = update;
 	_vertex = vp;
 	_fragment = fp;
 	_program = 0;
 	_vertexShaderID = 0;
 	_fragmentShaderID = 0;
 	_recompileProgram(false, false);
+	if (_shouldUpdate)
+		_updateList.push_back(this);
 }
 
 ShadingProgram::~ShadingProgram()
@@ -15,6 +20,16 @@ ShadingProgram::~ShadingProgram()
 	glDeleteShader(_vertexShaderID);
 	glDeleteShader(_fragmentShaderID);
 	glDeleteProgram(_program);
+	if (_shouldUpdate)
+	{
+		_updateList.erase(
+			std::remove_if(
+				_updateList.begin(),
+				_updateList.end(),
+				[this](ShadingProgram* a){return a == this;}),
+			_updateList.end()
+		);
+	}
 }
 
 void ShadingProgram::_recompileProgram(bool keepVert, bool keepFrag)
@@ -129,19 +144,7 @@ void ShadingProgram::_getUniforms()
 		p.second = glGetUniformLocation(_program, p.first.c_str());
 }
 
-void	ShadingProgram::Use()
-{
-	glUseProgram(_program);
-}
-
-GLuint	ShadingProgram::Uniform(const std::string& name)
-{
-	if (_uniforms.count(name) == 0)
-		_uniforms[name] = glGetUniformLocation(_program, name.c_str());
-	return _uniforms[name];
-}
-
-void ShadingProgram::Update()
+void ShadingProgram::_update()
 {
 	bool keepVert = true;
 	bool keepFrag = true;
@@ -157,4 +160,22 @@ void ShadingProgram::Update()
 			keepFrag = false;
 
 	_recompileProgram(keepVert, keepFrag);
+}
+
+void	ShadingProgram::Use()
+{
+	glUseProgram(_program);
+}
+
+GLuint	ShadingProgram::Uniform(const std::string& name)
+{
+	if (_uniforms.count(name) == 0)
+		_uniforms[name] = glGetUniformLocation(_program, name.c_str());
+	return _uniforms[name];
+}
+
+void ShadingProgram::UpdateAll()
+{
+	for (auto p : _updateList)
+		p->_update();
 }

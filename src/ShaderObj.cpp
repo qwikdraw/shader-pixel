@@ -2,7 +2,7 @@
 
 ShaderObj::ShaderObj(const std::string& fragpath)
 {
-	_program = new ShadingProgram(_vertexPath, fragpath);
+	_program = new ShadingProgram(_vertexPath, fragpath, true);
 	_loadArrayBuffers();
 	_makeVAO();
 }

@@ -68,7 +68,7 @@ get_mesh_data(
 
 void ObjRender::Init()
 {
-	_program = new ShadingProgram(_vertexPath, _fragPath);
+	_program = new ShadingProgram(_vertexPath, _fragPath, true);
 }
 
 
@@ -184,7 +184,6 @@ void ObjRender::Render(
 	const CameraData& cam_data,
 	const std::vector<glm::mat4>& transforms)
 {
-	_program->Update();
 	_program->Use();
 	glBindTexture(GL_TEXTURE_2D, _texID);
 	glActiveTexture(GL_TEXTURE0);

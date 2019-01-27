@@ -103,7 +103,7 @@ void SkyBox::_makeVAO()
 SkyBox::SkyBox(std::string right, std::string left, std::string top,
 			std::string bot, std::string back, std::string front)
 {
-	_program = new ShadingProgram(_vertexPath, _fragPath);
+	_program = new ShadingProgram(_vertexPath, _fragPath, true);
 	_program->Use();
 
 	_loadArrayBuffers();
@@ -128,7 +128,6 @@ SkyBox::~SkyBox()
 
 void	SkyBox::Render(const CameraData& cam_data)
 {
-	_program->Update();
 	_program->Use();
 	glm::mat4 transform = cam_data.projection * glm::mat4(glm::mat3(cam_data.view));
 	glUniformMatrix4fv(

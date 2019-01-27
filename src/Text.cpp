@@ -16,7 +16,7 @@ Text::Text(std::string message)
 	if (_init)
 		return;
 
-	_program = new ShadingProgram(_vertexPath, _fragPath);
+	_program = new ShadingProgram(_vertexPath, _fragPath, true);
 
 	_square.resize(12);
 	_uv.resize(12);
@@ -123,11 +123,6 @@ void	Text::RenderChar(char c, glm::vec2 topleft, glm::vec2 botright)
 
 void	Text::Render(float aspect)
 {
-	_program->Update();
-
-//	float screenWidth = aspect;
-//	float screenHeight = 1;
-
 	float charWidth = 1 / aspect;
 	float charHeight = 1;
 

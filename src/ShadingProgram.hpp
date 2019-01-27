@@ -3,10 +3,15 @@
 #include "util_inc.hpp"
 #include <string>
 #include <map>
+#include <list>
+#include <algorithm>
 #include <sys/stat.h>
 
 class ShadingProgram
 {
+	static std::list<ShadingProgram*> _updateList;
+	bool _shouldUpdate;
+
 	std::string _vertexCode;
 	std::string _fragmentCode;
 	GLuint _program;
@@ -28,10 +33,13 @@ class ShadingProgram
 	void _checkCompilation(GLuint, std::string filepath);
 	void _checkLinking();
 
+	void _update();
+
 public:
-	ShadingProgram(std::string vp, std::string fp);
+	ShadingProgram(std::string vp, std::string fp, bool update=false);
 	~ShadingProgram();
 	void Use();
 	GLuint Uniform(const std::string&);
-	void Update();
+
+	static void UpdateAll();
 };

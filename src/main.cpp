@@ -8,6 +8,7 @@
 #include "ShaderObj.hpp"
 #include "Light.hpp"
 #include "Transparency.hpp"
+#include "ShadingProgram.hpp"
 
 int	main(void)
 {
@@ -34,11 +35,20 @@ int	main(void)
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
 
+	int lastSecond = 0;
+
 	while (!window.ShouldClose())
 	{
 		if ((err = glGetError()) != GL_NO_ERROR)
 			std::cerr << err << std::endl;
 		clock.Step();
+
+		if (int(clock.Total()) > lastSecond)
+		{
+			lastSecond = clock.Total();
+			ShadingProgram::UpdateAll();
+		}
+
 		window.Clear();
 		cam.Update(clock.Delta());
 		scene.Render(cam.GetCameraData());
