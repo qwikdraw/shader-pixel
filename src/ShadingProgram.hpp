@@ -22,6 +22,7 @@ class ShadingProgram
 	void _recompileProgram(bool keepVert, bool keepFrag);
 	GLuint _compileVertexShader();
 	GLuint _compileFragmentShader();
+	void _getUniforms();
 
 	std::string _getShaderCode(std::string filepath);
 	void _checkCompilation(GLuint, std::string filepath);

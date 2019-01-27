@@ -191,7 +191,7 @@ void ObjRender::Render(
 	glUniform1i(_program->Uniform("tex"), 0);
 
 	glBindVertexArray(_VAO);
-	glUniform3fv(_program->Uniform("worldToScreen"), 1, &cam_data.position[0]);
+	glUniform3fv(_program->Uniform("campos"), 1, &cam_data.position[0]);
 	glUniformMatrix4fv(_program->Uniform("worldToScreen"), 1, GL_FALSE,
 		glm::value_ptr(cam_data.worldToScreen));
 

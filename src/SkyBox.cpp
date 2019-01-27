@@ -128,6 +128,7 @@ SkyBox::~SkyBox()
 
 void	SkyBox::Render(const CameraData& cam_data)
 {
+	_program->Update();
 	_program->Use();
 	glm::mat4 transform = cam_data.projection * glm::mat4(glm::mat3(cam_data.view));
 	glUniformMatrix4fv(

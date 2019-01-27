@@ -21,6 +21,7 @@ void ShadingProgram::_recompileProgram(bool keepVert, bool keepFrag)
 {
 	if (keepVert && keepFrag)
 		return;
+	std::cout << "program changing" << std::endl;
 	if (!keepVert)
 	{
 		glDeleteShader(_vertexShaderID);
@@ -38,6 +39,7 @@ void ShadingProgram::_recompileProgram(bool keepVert, bool keepFrag)
 	glAttachShader(_program, _fragmentShaderID);
 	glLinkProgram(_program);
 	_checkLinking();
+	_getUniforms();
 }
 
 GLuint ShadingProgram::_compileVertexShader()
@@ -119,6 +121,12 @@ void	ShadingProgram::_checkLinking()
 		std::cerr << "Error linking shader program:" << std::endl << log << std::endl;
 		delete[] log;
 	}
+}
+
+void ShadingProgram::_getUniforms()
+{
+	for (auto& p : _uniforms)
+		p.second = glGetUniformLocation(_program, p.first.c_str());
 }
 
 void	ShadingProgram::Use()
