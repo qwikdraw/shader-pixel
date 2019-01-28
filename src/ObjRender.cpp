@@ -7,11 +7,6 @@
 
 ShadingProgram* ObjRender::_program = nullptr;
 
-GLuint ObjRender::_worldToScreenID;
-GLuint ObjRender::_camPosID;
-GLuint ObjRender::_texLocID;
-GLuint ObjRender::_transformID;
-
 static void
 get_mesh_data(
 	const std::string& filepath,
@@ -73,11 +68,7 @@ get_mesh_data(
 
 void ObjRender::Init()
 {
-	_program = new ShadingProgram(_vertexPath, _fragPath);
-	_worldToScreenID = glGetUniformLocation(_program->ID(), "worldToScreen");
-	_transformID = glGetUniformLocation(_program->ID(), "transform");
-	_camPosID = glGetUniformLocation(_program->ID(), "camPos");
-	_texLocID = glGetUniformLocation(_program->ID(), "tex");
+	_program = new ShadingProgram(_vertexPath, _fragPath, true);
 }
 
 
@@ -102,6 +93,13 @@ ObjRender::ObjRender(const std::string& filepath)
 	_loadTexture(_texDir + textures[0]);
 }
 
+ObjRender::~ObjRender()
+{
+	glDeleteVertexArrays(1, &_VAO);
+	glDeleteBuffers(1, &_trianglesID);
+	glDeleteBuffers(1, &_uvsID);
+	glDeleteBuffers(1, &_normalsID);
+}
 
 void
 ObjRender::_loadArrayBuffers(
@@ -189,11 +187,11 @@ void ObjRender::Render(
 	_program->Use();
 	glBindTexture(GL_TEXTURE_2D, _texID);
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(_texLocID, 0);
+	glUniform1i(_program->Uniform("tex"), 0);
 
 	glBindVertexArray(_VAO);
-	glUniform3fv(_camPosID, 1, &cam_data.position[0]);
-	glUniformMatrix4fv(_worldToScreenID, 1, GL_FALSE,
+	glUniform3fv(_program->Uniform("campos"), 1, &cam_data.position[0]);
+	glUniformMatrix4fv(_program->Uniform("worldToScreen"), 1, GL_FALSE,
 		glm::value_ptr(cam_data.worldToScreen));
 
 
@@ -202,7 +200,7 @@ void ObjRender::Render(
 	glCullFace(GL_BACK);
 	for (auto& transform : transforms)
 	{
-		glUniformMatrix4fv(_transformID, 1, GL_FALSE,
+		glUniformMatrix4fv(_program->Uniform("transform"), 1, GL_FALSE,
 			glm::value_ptr(transform));
 		glDrawArrays(GL_TRIANGLES, 0, _vertexCount);
 	}

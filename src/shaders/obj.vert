@@ -17,7 +17,7 @@ void	main()
 {
     gl_Position = worldToScreen * transform * vec4(vertex, 1);
     normal_v = normal;
-    dir_v = vec3(vertex) - campos;
+    dir_v = vec3(transform * vec4(vertex, 1)) - campos;
     dist_v = length(dir_v);
     dir_v = normalize(dir_v);
     uv_v = uv;

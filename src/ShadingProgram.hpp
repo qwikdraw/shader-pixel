@@ -1,19 +1,45 @@
 #pragma once
 
 #include "util_inc.hpp"
+#include <string>
+#include <map>
+#include <list>
+#include <algorithm>
+#include <sys/stat.h>
 
-class	ShadingProgram
+class ShadingProgram
 {
-private:
+	static std::list<ShadingProgram*> _updateList;
+	bool _shouldUpdate;
 
+	std::string _vertexCode;
+	std::string _fragmentCode;
 	GLuint _program;
+	std::string _vertex;
+	GLuint _vertexShaderID;
+	time_t _vertexModify;
+	std::string _fragment;
+	GLuint _fragmentShaderID;
+	time_t _fragmentModify;
 
-	std::string	GetShaderCode(std::string filepath);
-	void	CheckCompilation(GLuint, std::string filepath);
-	void	CheckLinking(void);
+	std::map<std::string, GLuint> _uniforms;
+
+	void _recompileProgram(bool keepVert, bool keepFrag);
+	GLuint _compileVertexShader();
+	GLuint _compileFragmentShader();
+	void _getUniforms();
+
+	std::string _getShaderCode(std::string filepath);
+	void _checkCompilation(GLuint, std::string filepath);
+	void _checkLinking();
+
+	void _update();
 
 public:
-	ShadingProgram(std::string vertexPath, std::string fragPath);
-	void	Use(void);
-	GLuint	ID(void);
+	ShadingProgram(std::string vp, std::string fp, bool update=false);
+	~ShadingProgram();
+	void Use();
+	GLuint Uniform(const std::string&);
+
+	static void UpdateAll();
 };

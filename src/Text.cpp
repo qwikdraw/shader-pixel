@@ -6,7 +6,6 @@ std::vector<float> Text::_uv;
 GLuint Text::_squareID;
 GLuint Text::_UVID;
 GLuint Text::_textureID;
-GLuint Text::_textureLocationID;
 GLuint Text::_VAO;
 bool Text::_init = false;
 
@@ -17,27 +16,26 @@ Text::Text(std::string message)
 	if (_init)
 		return;
 
-	_program = new ShadingProgram(_vertexPath, _fragPath);
+	_program = new ShadingProgram(_vertexPath, _fragPath, true);
 
 	_square.resize(12);
 	_uv.resize(12);
 
-	_textureLocationID = glGetUniformLocation(_program->ID(), "tex");
-	glUseProgram(_program->ID());
+	_program->Use();
 
 	glGenBuffers(1, &_squareID);
 	glBindBuffer(GL_ARRAY_BUFFER, _squareID);
 	glBufferData(GL_ARRAY_BUFFER,
-		     2 * 6 * sizeof(GLfloat),
-		     NULL,
-		     GL_STREAM_DRAW);
+		2 * 6 * sizeof(GLfloat),
+		NULL,
+		GL_STREAM_DRAW);
 
 	glGenBuffers(1, &_UVID);
 	glBindBuffer(GL_ARRAY_BUFFER, _UVID);
 	glBufferData(GL_ARRAY_BUFFER,
-		     12 * sizeof(GLfloat),
-		     NULL,
-		     GL_STREAM_DRAW);
+		12 * sizeof(GLfloat),
+		NULL,
+		GL_STREAM_DRAW);
 
 	Texture textureParser(_fontFile);
 
@@ -45,14 +43,14 @@ Text::Text(std::string message)
 	glGenTextures(1, &_textureID);
 	glBindTexture(GL_TEXTURE_2D, _textureID);
 	glTexImage2D(GL_TEXTURE_2D,
-		     0,
-		     GL_RGBA,
-		     textureParser.Width(),
-		     textureParser.Height(),
-		     0,
-		     GL_RGBA,
-		     GL_UNSIGNED_BYTE,
-		     textureParser.Data());
+		0,
+		GL_RGBA,
+		textureParser.Width(),
+		textureParser.Height(),
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		textureParser.Data());
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -60,7 +58,7 @@ Text::Text(std::string message)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(_textureLocationID, 0);
+	glUniform1i(_program->Uniform("tex"), 0);
 
 	glGenVertexArrays(1, &_VAO);
 
@@ -94,26 +92,26 @@ void	Text::RenderChar(char c, glm::vec2 topleft, glm::vec2 botright)
 
 	glBindBuffer(GL_ARRAY_BUFFER, _squareID);
 	glBufferData(GL_ARRAY_BUFFER,
-			     12  * sizeof(GLfloat),
-			     NULL,
-			     GL_STREAM_DRAW);
+		12  * sizeof(GLfloat),
+		NULL,
+		GL_STREAM_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER,
-				0,
-				12 * sizeof(GLfloat),
-				&_square[0]);
+		0,
+		12 * sizeof(GLfloat),
+		&_square[0]);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, _UVID);
 	glBufferData(GL_ARRAY_BUFFER,
-			     12 * sizeof(GLfloat),
-			     NULL,
-			     GL_STREAM_DRAW);
+		12 * sizeof(GLfloat),
+		NULL,
+		GL_STREAM_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER,
-				0,
-				12 * sizeof(GLfloat),
-				&_uv[0]);
+		0,
+		12 * sizeof(GLfloat),
+		&_uv[0]);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
@@ -125,11 +123,6 @@ void	Text::RenderChar(char c, glm::vec2 topleft, glm::vec2 botright)
 
 void	Text::Render(float aspect)
 {
-
-
-//	float screenWidth = aspect;
-//	float screenHeight = 1;
-
 	float charWidth = 1 / aspect;
 	float charHeight = 1;
 
@@ -152,8 +145,8 @@ void	Text::Render(float aspect)
 	glDisable(GL_DEPTH_TEST);
 
 	glBindTexture(GL_TEXTURE_2D, _textureID);
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(_textureLocationID, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(_program->Uniform("tex"), 0);
 
 	glBindVertexArray(_VAO);
 	for (size_t i = 0; i < _message.length(); i++)
@@ -163,12 +156,11 @@ void	Text::Render(float aspect)
 		float xCenter =	distFromCenter * charWidth * 0.8;
 
 		RenderChar(_message[i],
-			   glm::vec2(xCenter - charWidth / 2, charHeight / 2),
-			   glm::vec2(xCenter + charWidth / 2, -charHeight / 2));
+			glm::vec2(xCenter - charWidth / 2, charHeight / 2),
+			glm::vec2(xCenter + charWidth / 2, -charHeight / 2));
 	}
 	glBindVertexArray(0);
 
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-
 }

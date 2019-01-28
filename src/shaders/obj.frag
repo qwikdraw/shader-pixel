@@ -11,8 +11,6 @@ out vec3 color;
 
 void	main()
 {
-	float modify = max(dot(normalize(normal_v), dir_v), 0.07);
-	modify /= max(dist_v, 10.0);
-	modify = (modify / (modify + 0.02));
+	float modify = abs(dot(normalize(dir_v), normalize(normal_v)));
 	color = texture(tex, uv_v).rgb * modify;
 }

@@ -21,7 +21,6 @@ private:
 	static GLuint _squareID;
 	static GLuint _UVID;
 	static GLuint _textureID;
-	static GLuint _textureLocationID;
 	static GLuint _VAO;
 
 	static bool _init;

@@ -103,11 +103,8 @@ void SkyBox::_makeVAO()
 SkyBox::SkyBox(std::string right, std::string left, std::string top,
 			std::string bot, std::string back, std::string front)
 {
-	_program = new ShadingProgram(_vertexPath, _fragPath);
-	_textureLocationID = glGetUniformLocation(_program->ID(), "tex");
-	glUseProgram(_program->ID());
-
-	_projectionID = glGetUniformLocation(_program->ID(), "projection");
+	_program = new ShadingProgram(_vertexPath, _fragPath, true);
+	_program->Use();
 
 	_loadArrayBuffers();
 
@@ -122,7 +119,7 @@ SkyBox::SkyBox(std::string right, std::string left, std::string top,
 	_makeVAO();
 }
 
-SkyBox::~SkyBox(void)
+SkyBox::~SkyBox()
 {
 	glDeleteTextures(1, &_textureID);
 	glDeleteBuffers(1, &_vertexArrayID);
@@ -134,7 +131,7 @@ void	SkyBox::Render(const CameraData& cam_data)
 	_program->Use();
 	glm::mat4 transform = cam_data.projection * glm::mat4(glm::mat3(cam_data.view));
 	glUniformMatrix4fv(
-		_projectionID,
+		_program->Uniform("projection"),
 		1,
 		GL_FALSE,
 		glm::value_ptr(transform)
@@ -142,7 +139,7 @@ void	SkyBox::Render(const CameraData& cam_data)
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, _textureID);
 	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(_textureLocationID, 0);
+	glUniform1i(_program->Uniform("tex"), 0);
 	glBindVertexArray(_VAO);
 
 	// save old
