@@ -19,38 +19,35 @@ out vec4 color;
 const int MARCH_MAX = 255;
 const float MARCH_MIN_DIST = 0.0f;
 const float MARCH_MAX_DIST = 50.0f;
+const float MARCH_STEP = 0.1f;
 const float EPSILON = 0.001f;
 
-// Mandelbox
-const float ITERS = 6;
-const float SCALE = 2.7f;
-const float MR2 = 0.25f;
-
-const vec4 scalevec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / MR2;
-const float C1 = abs(SCALE - 1.0), C2 = pow(abs(SCALE), float(1 - ITERS));
-
-float mandelbox(vec3 position){
-  vec4 p = vec4(position.xyz, 1.0), p0 = vec4(position.xyz, 1.0);
-  for (int i=0; i < ITERS; i++) {
-    p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;
-    float r2 = dot(p.xyz, p.xyz);
-	p.xyzw *= clamp(max(MR2 / r2, MR2), 0.0, 1.0);
-    p.xyzw = p * scalevec + p0;
-  }
-  return (length(p.xyz) - C1) / p.w - C2;
+vec4 marble(vec3 p) {
+	return vec4(length(p) - 1.0, );
 }
 
 // Distance field representing our scene.
 float scene(vec3 p) {
-	// Scaled mandelbox by 0.1
-	return mandelbox(p * 10) / 10;
+	return marble(p);
 }
 
-float ray_march(vec3 rp, vec3 rv) {
+float volume_march(vec3 ro, vec3 rv) {
+	float inside_dist = 0.0f;
+	for (float depth = 0.0f; depth < MARCH_MAX_DIST;depth += MARCH_STEP)
+	{
+		float dist = scene(ro + rv * depth);
+		if (dist <= 0.0) {
+			inside_dist += MARCH_STEP;
+		}
+	}
+	return inside_dist;
+}
+
+float ray_march(vec3 ro, vec3 rv) {
 	float depth = MARCH_MIN_DIST;
 	for (int i = 0; i < MARCH_MAX; ++i)
 	{
-		float min_distance = scene(rp + rv * depth);
+		float min_distance = scene(ro + rv * depth);
 		depth += min_distance;
 		if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
 			break;
@@ -114,18 +111,18 @@ float soft_shadow(vec3 intersect, vec3 light_normal, float softness)
     return res;
 }
 
-vec3 shader(vec3 rp, vec3 rv) {
-	float dist = ray_march(rp, rv);
+vec3 shader(vec3 ro, vec3 rv) {
+	float dist = ray_march(ro, rv);
 	if (dist > MARCH_MAX_DIST - EPSILON)
 		discard;
-	vec3 intersect = rp + rv * dist;
+	vec3 intersect = ro + rv * dist;
 	vec3 normal = get_normal(intersect);
 
 	vec3 c = vec3(1.0);
 
 	c *= max(diffuse(normal, vec3(0.0, 1.0, 0.0)), 0.2);
 	c *= ambient_occulsion(normal, intersect);
-	c *= soft_shadow(intersect, vec3(0.0, 1.0, 0.0), 2.0);
+	//c *= soft_shadow(intersect, vec3(0.0, 1.0, 0.0), 2.0);
 
 	color = vec4(c, 1.0);
 

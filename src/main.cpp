@@ -29,8 +29,7 @@ int	main(void)
 		"assets/textures/skybox/back.png"
 	);
 	ObjRender::Init();
-	ShaderObj mandelbox("src/shaders/mandelbox.frag");
-	ShaderObj sphere("src/shaders/sphere.frag");
+	ShaderObj shader_object("src/shaders/marble.frag");
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
@@ -54,14 +53,8 @@ int	main(void)
 		scene.Render(cam.GetCameraData());
 		sky.Render(cam.GetCameraData());
 
-		sphere.Render(cam.GetCameraData(),
+		shader_object.Render(cam.GetCameraData(),
 			glm::translate(glm::mat4(1), glm::vec3(3, 2, 3)), clock.Total());
-
-		mandelbox.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1), glm::vec3(0, 3, 0)), clock.Total());
-
-		sphere.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1), glm::vec3(0, 2, 3)), clock.Total());
 
 		Transparency::RenderAll();
 		fps.Render(window);
