@@ -14,7 +14,7 @@ int	main(void)
 {
 	GLenum err;
 
-	Window window(1280, 720, "ft_vox");
+	Window window(1280, 720, "shader_pixel");
 	glClearColor(0.2, 0.25, 0.3, 1);
 
 	FPSDisplay fps;
@@ -29,7 +29,7 @@ int	main(void)
 		"assets/textures/skybox/back.png"
 	);
 	ObjRender::Init();
-	ShaderObj shader_object("src/shaders/marble.frag");
+	ShaderObj shader("src/shaders/marble.frag");
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
@@ -53,8 +53,11 @@ int	main(void)
 		scene.Render(cam.GetCameraData());
 		sky.Render(cam.GetCameraData());
 
-		shader_object.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1), glm::vec3(3, 2, 3)), clock.Total());
+		glm::mat4 tr = glm::mat4(2);
+		tr[3][3] = 1;
+
+		shader.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1), glm::vec3(0, 3, 0)), clock.Total());
 
 		Transparency::RenderAll();
 		fps.Render(window);
