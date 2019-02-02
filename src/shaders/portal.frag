@@ -28,11 +28,23 @@ float noise(float p){
 	return mix(rand(fl), rand(fl + 1.0), fc);
 }
 
+float manhat(vec2 a, vec2 b)
+{
+	return abs(a.x - b.x) + abs(a.y - b.y);
+}
+
 float noise(vec2 n) {
-	n = round(n * 2.0) / 2.0;
+	n = round(n * 2) / 2;
 	const vec2 d = vec2(0.0, 1.0);
 	vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
 	return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y + sin(time) * 0.3);
+}
+
+float perlin(vec2 n) {
+	n = round(n * 2) / 2;
+	const vec2 d = vec2(0.0, 1.0);
+	vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
+	return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
 }
 
 float time_noise(vec2 n) {
@@ -43,23 +55,41 @@ float time_noise(vec2 n) {
 	return 0.8 + 0.3 * sin(time) * mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
 }
 
+float plane_d(vec3 rp, vec3 rv, vec3 pn, vec3 pp)
+{
+	return dot(rv, pn) / dot(pp - rp, pn);
+}
+
+vec3 star_sky(vec3 rp, vec3 rv)
+{
+	float pd = plane_d(rp, rv, vec3(0, 1, 0), vec3(0, 10, 0));
+	if (pd < 0.02)
+		return vec3(0, 0, 0);
+	vec2 uv = rv.xz;
+	float p = perlin(uv * 100);
+	if (p > 0.99)
+		return vec3(pow((p - 0.99) * 100, 3 + sin(time + (p - 0.99) * 100)));
+	return vec3(0, 0, 0);
+}
 
 vec3 portal(vec3 rp, vec3 rv)
 {
 	float smog = 0;
+	if (plane_d(rp, rv, vec3(0, 1, 0), vec3(0, -1.5, 0)) < 0)
+		return star_sky(rp, rv);
 	for (int i = 0; i < 40; i++)
 	{
 		rp += rv * (0.1 + rand(rp.xy) * 0.1);
 		if (rp.y + 1.5 < noise(rp.xz))
 		{
 			// intersection
-			vec2 a2 = rp.xz + vec2(0, 0.02);
-			vec2 b2 = rp.xz + vec2(0.02, 0);
+			vec2 a2 = rp.xz + vec2(0, 0.01);
+			vec2 b2 = rp.xz + vec2(0.01, 0);
 			vec3 a3 = vec3(a2.x, noise(a2), a2.y);
 			vec3 b3 = vec3(b2.x, noise(b2), b2.y);
 			vec3 intersect = vec3(rp.x, noise(rp.xz), rp.z);
 			vec3 normal = normalize(cross(intersect - a3, intersect - b3));
-			float modify = dot(normal, vec3(0, 0.707, 0.707));
+			float modify = dot(normal, normalize(vec3(0, 1, 2)));
 
 			vec3 basecol = mix(vec3(0.1, 0.2, 0.1), vec3(0.5, 0.5, 0.2), intersect.y);
 			float smogmix = smog / 40.0;
@@ -71,7 +101,7 @@ vec3 portal(vec3 rp, vec3 rv)
 	}
 	float smogmix = smog / 40.0;
 	vec3 smogcol = vec3(1, 0.9, 0.9);
-	return mix(vec3(0, 0, 0), smogcol, smogmix);
+	return mix(star_sky(rp, rv), smogcol, smogmix);
 }
 
 
