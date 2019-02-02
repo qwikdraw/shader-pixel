@@ -12,7 +12,8 @@ ObjRender \
 Scene \
 ShaderObj \
 Light \
-Transparency
+Transparency \
+RenderTarget
 
 SRC_DIR = src
 OBJ_DIR = obj

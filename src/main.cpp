@@ -9,6 +9,7 @@
 #include "Light.hpp"
 #include "Transparency.hpp"
 #include "ShadingProgram.hpp"
+#include "RenderTarget.hpp"
 
 int	main(void)
 {
@@ -34,6 +35,9 @@ int	main(void)
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
+
+	RenderTarget r(100, 100);
+	r.Use();
 
 	int lastSecond = 0;
 
