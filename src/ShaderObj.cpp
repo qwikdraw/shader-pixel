@@ -89,6 +89,13 @@ void ShaderObj::_render(
 	_program->Use();
 	glBindVertexArray(_VAO);
 
+	if (_texID)
+	{
+		glBindTexture(GL_TEXTURE_2D, _texID);
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(_program->Uniform("tex"), 0);
+	}
+
 	int size = Light::positions.size();
 	size = std::min(size, 99);
 	if (size)
@@ -133,8 +140,10 @@ void ShaderObj::_render(
 void ShaderObj::Render(
 	const CameraData& cam_data,
 	const glm::mat4& transform,
-	float total_time)
+	float total_time,
+	GLuint texID)
 {
 	_total_time = total_time;
+	_texID = texID;
 	_addRender(cam_data, transform);
 }

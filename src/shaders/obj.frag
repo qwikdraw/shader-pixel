@@ -7,7 +7,7 @@ in vec2 uv_v;
 
 uniform sampler2D tex;
 
-out vec3 color;
+layout(location = 0) out vec3 color;
 
 void	main()
 {

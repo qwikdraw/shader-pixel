@@ -127,6 +127,7 @@ void	Window::RemoveRenderMask(void)
 	_height = 1;
 
 	int width, height;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glfwGetFramebufferSize(_window, &width, &height);
 	glViewport(0, 0, width, height);
 	glScissor(0, 0, width, height);

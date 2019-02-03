@@ -17,6 +17,7 @@ class ShaderObj : public Transparency
 	ShadingProgram* _program;
 
 	float _total_time;
+	GLuint _texID;
 
 	void _loadArrayBuffers();
 	void _makeVAO();
@@ -32,5 +33,6 @@ public:
 	void Render(
 		const CameraData& cam_data,
 		const glm::mat4& transform,
-		float total_time);
+		float total_time,
+		GLuint texID=0);
 };
