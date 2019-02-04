@@ -36,7 +36,8 @@ int	main(void)
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
 
-	RenderTarget r(500, 500);
+	RenderTarget r1(500, 500);
+	RenderTarget r2(500, 500);
 
 	int lastSecond = 0;
 
@@ -55,10 +56,25 @@ int	main(void)
 		window.Clear();
 		cam.Update(clock.Delta());
 
-		r.Use();
+		r1.Use();
 		scene.Render(cam.GetCameraData());
 		sky.Render(cam.GetCameraData());
+
 		window.RemoveRenderMask();
+
+		r2.Use();
+		scene.Render(cam.GetCameraData());
+		sky.Render(cam.GetCameraData());
+		buffer.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1),
+			glm::vec3(0, 3, 0)),
+			clock.Total(),
+			true,
+			r1.TextureID());
+
+		window.RemoveRenderMask();
+
+
 		scene.Render(cam.GetCameraData());
 
 		sky.Render(cam.GetCameraData());
@@ -70,7 +86,8 @@ int	main(void)
 			glm::translate(glm::mat4(1),
 			glm::vec3(0, 3, 0)),
 			clock.Total(),
-			r.TextureID());
+			false,
+			r2.TextureID());
 
 		sphere.Render(cam.GetCameraData(),
 			glm::translate(glm::mat4(1), glm::vec3(0, 2, 3)), clock.Total());

@@ -34,5 +34,6 @@ public:
 		const CameraData& cam_data,
 		const glm::mat4& transform,
 		float total_time,
+		bool immediate=false,
 		GLuint texID=0);
 };

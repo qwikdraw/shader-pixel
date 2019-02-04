@@ -18,6 +18,10 @@ uniform sampler2D tex;
 
 out vec4 color;
 
+ float rand(vec2 n) {
+	return fract(sin(dot(n, vec2(0.9898, 0.1414))) * 214124.5453);
+}
+
 void shader(vec3 rp, vec3 rv)
 {
 	const vec3 normal = vec3(0, 0, 1);
@@ -39,7 +43,15 @@ void shader(vec3 rp, vec3 rv)
 		color = vec4(0);
 		return;
 	}
-	color = vec4(texture(tex, (intersection.xy + vec2(0.7)) / 1.4).rgb, 1);
+	vec2 uv = (intersection.xy + vec2(0.7)) / 1.4;
+	float dfs = 2 * max(abs(uv.x - 0.5), abs(uv.y - 0.5));
+	float alpha = 1;
+	if (dfs > 0.8)
+		alpha = 1 - 5 * (dfs - 0.8);
+	if (alpha < 0.1 && (sin(time) > length(uv - vec2(0.5))))
+		color = vec4(1, 0.1, 0.25, pow(alpha * 5, 1));
+	else
+		color = vec4(texture(tex, uv).rgb, pow(alpha, 4));
 }
 
 void main()

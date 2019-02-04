@@ -141,9 +141,13 @@ void ShaderObj::Render(
 	const CameraData& cam_data,
 	const glm::mat4& transform,
 	float total_time,
+	bool immediate,
 	GLuint texID)
 {
 	_total_time = total_time;
 	_texID = texID;
-	_addRender(cam_data, transform);
+	if (immediate)
+		_render(cam_data, transform);
+	else
+		_addRender(cam_data, transform);
 }
