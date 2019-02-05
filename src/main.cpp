@@ -29,7 +29,7 @@ int	main(void)
 		"assets/textures/skybox/back.png"
 	);
 	ObjRender::Init();
-	ShaderObj shader("src/shaders/marble.frag");
+	ShaderObj shader("src/shaders/mandelbox.frag");
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
