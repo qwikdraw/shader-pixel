@@ -18,8 +18,13 @@ out vec4 frag_color;
 
 const int MARCH_MAX = 255;
 const float MARCH_MIN_DIST = 0.0f;
-const float MARCH_MAX_DIST = 50.0f;
+const float MARCH_MAX_DIST = 20.0f;
 const float EPSILON = 0.001f;
+
+const vec4 materials[2] = vec4[](
+    vec4(0.0), // Null Color
+    vec4(0.2, 0.0, 1.0, 1.0) // Deep Purple
+);
 const float PI = 3.14159;
 
 vec2 fold(vec2 p, float ang){
@@ -56,6 +61,7 @@ float scene(vec3 p, out int object_id) {
     return ifs(p * 4) / 4;
 }
 
+
 float ray_march(vec3 ro, vec3 rv, out int object_id) {
     float depth = MARCH_MIN_DIST;
     for (int i = 0; i < MARCH_MAX; ++i)
@@ -88,54 +94,54 @@ vec3 get_normal(vec3 p) {
 #else
 
 vec3 get_normal(vec3 p) {
+    int _;
     return normalize(vec3(
-        scene(vec3(p.x + EPSILON, p.y, p.z)) - scene(vec3(p.x - EPSILON, p.y, p.z)),
-        scene(vec3(p.x, p.y + EPSILON, p.z)) - scene(vec3(p.x, p.y - EPSILON, p.z)),
-        scene(vec3(p.x, p.y, p.z  + EPSILON)) - scene(vec3(p.x, p.y, p.z - EPSILON))
+        scene(vec3(p.x + EPSILON, p.y, p.z), _) - scene(vec3(p.x - EPSILON, p.y, p.z), _),
+        scene(vec3(p.x, p.y + EPSILON, p.z), _) - scene(vec3(p.x, p.y - EPSILON, p.z), _),
+        scene(vec3(p.x, p.y, p.z  + EPSILON), _) - scene(vec3(p.x, p.y, p.z - EPSILON), _)
     ));
 }
 
 #endif
 
-float ambient_occulsion(vec3 normal, vec3 p)
+float ambient_occulsion(vec3 normal, vec3 pos)
 {
     int _;
     float x = 0.0;
-    x += 0.1 - scene(p + normal * 0.1, _);
-    x += 0.2 - scene(p + normal * 0.2, _);
-    x += 0.3 - scene(p + normal * 0.3, _);
+    x += 0.1 - scene(pos + normal * 0.1, _);
+    x += 0.3 - scene(pos + normal * 0.3, _);
+    x += 0.5 - scene(pos + normal * 0.5, _);
     return 1.0 - x;
 }
 
-vec3 phong(vec3 pos, vec3 normal, vec3 material_color, vec3 cam_pos, vec3 light_pos, vec3 light_color)
+vec3 phong(vec3 normal, vec3 material_color, vec3 cam_dir, vec3 light_normal, vec3 light_color, float light_strength)
 {
-    vec3 light_normal = light_pos - pos;
     float distance = length(light_normal);
     light_normal = normalize(light_normal);
 
     float diffuse = clamp(dot(normal, light_normal), 0.0, 1.0);
 
-    vec3 reflected_light_dir = normalize(reflect(-light_normal, normal));
-    
-    vec3 cam_dir = normalize(cam_pos - pos);
+    vec3 reflected_light_dir = normalize(reflect(light_normal, normal));
+
     float specular = pow(clamp(dot(reflected_light_dir, cam_dir), 0.0, 1.0), 10.0);
 
-    vec3 diffuse_color = material_color * diffuse;
+    vec3 diffuse_color = material_color * max(diffuse, 0.02);
     vec3 specular_color = light_color * specular;
 
     distance *= distance;
-    return (vec3(0.001) + diffuse_color + specular_color) / distance;  
+    return (diffuse_color + specular_color) * light_strength / distance;
 }
 
 float soft_shadow(vec3 pos, vec3 light_normal, float softness)
 {
     float res = 1.0;
     int _;
-    for (float depth = 0.01; depth < 20;)
+    light_normal = normalize(light_normal);
+    for (float depth = EPSILON * 2.0; depth < 20.0;)
     {
         float min_distance = scene(pos + light_normal * depth, _);
         if (min_distance < 0.001)
-            return 0.0;
+            return 0.02;
         res = min(res, softness * min_distance / depth);
         depth += min_distance;
     }
@@ -143,25 +149,31 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
 }
 
 void shader(vec3 ro, vec3 rv) {
+
     int object_id;
     float dist = ray_march(ro, rv, object_id);
     if (dist > MARCH_MAX_DIST - EPSILON)
         discard;
     vec3 pos = ro + rv * dist;
+
     vec3 normal = get_normal(pos);
 
-    vec3 color = phong(
-        pos, // hit position
-        normal, // object normal
-        vec3(0.0, 0.2, 0.4), // material Color
-        ro, // camera position
-        vec3(0.0, 1.0, 0.0), // light position
-        vec3(1.0, 1.0, 0.8) // light Color
-    );
-    color *= ambient_occulsion(normal, pos);
-    color *= soft_shadow(pos, vec3(0.0, 1.0, 0.0), 2.0);
+    vec4 object_color = materials[object_id];
 
-    frag_color = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
+    vec3 light_normal = vec3(0.0, 5.0, 0.0) - pos; 
+
+    vec3 color = phong(
+        normal, // object normal
+        object_color.xyz,
+        rv, // camera direction
+        light_normal, // light normal
+        vec3(1.0, 1.0, 0.8), // light Color
+        40.0 // Light strength
+    );
+
+    color *= ambient_occulsion(normal, pos);
+    color *= soft_shadow(pos, light_normal, 4.0);
+    frag_color = vec4(pow(color, vec3(0.4545)), object_color.w);
 }
 
 void main()

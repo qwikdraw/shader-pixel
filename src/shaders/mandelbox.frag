@@ -23,7 +23,7 @@ const float EPSILON = 0.001f;
 
 const vec4 materials[2] = vec4[](
     vec4(0.0), // Null Color
-    vec4(1.0, 0.0, 0.1, 1.0) // Gold
+    vec4(1.0, 0.0, 0.1, 1.0) // Maroon
 );
 
 // Mandelbox
