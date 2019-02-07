@@ -11,6 +11,6 @@ layout(location = 0) out vec3 color;
 
 void	main()
 {
-	float modify = abs(dot(normalize(dir_v), normalize(normal_v)));
-	color = texture(tex, uv_v).rgb * modify;
+    float modify = abs(dot(normalize(dir_v), normalize(normal_v)));
+    color = texture(tex, uv_v).rgb * modify;
 }

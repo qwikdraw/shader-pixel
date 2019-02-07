@@ -15,10 +15,11 @@ Light \
 Transparency \
 RenderTarget
 
-SRC_DIR = src
 OBJ_DIR = obj
 
-SRC = $(addsuffix .cpp, $(addprefix src/, $(LIST)))
+VPATH = src
+
+SRC = $(addsuffix .cpp, $(LIST))
 OBJ = $(addsuffix .o, $(addprefix $(OBJ_DIR)/, $(LIST)))
 DEP = $(OBJ:%.o=%.d)
 
@@ -43,7 +44,7 @@ $(OBJ_DIR):
 
 -include $(DEP)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(OBJ_DIR)/%.o: %.cpp
 	@printf "\e[34;1mCompiling: \e[0m%s\n" $<
 	@clang++ $(CPPFLAGS) -MMD -c $< -o $@
 

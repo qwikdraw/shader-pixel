@@ -15,7 +15,7 @@ int	main(void)
 {
 	GLenum err;
 
-	Window window(1280, 720, "ft_vox");
+	Window window(1280, 720, "shader_pixel");
 	glClearColor(0.2, 0.25, 0.3, 1);
 
 	FPSDisplay fps;
@@ -79,8 +79,8 @@ int	main(void)
 
 		sky.Render(cam.GetCameraData());
 
-		sphere.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1), glm::vec3(3, 2, 3)), clock.Total());
+		glm::mat4 tr = glm::mat4(2);
+		tr[3][3] = 1;
 
 		buffer.Render(cam.GetCameraData(),
 			glm::translate(glm::mat4(1),
@@ -88,9 +88,6 @@ int	main(void)
 			clock.Total(),
 			false,
 			r2.TextureID());
-
-		sphere.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1), glm::vec3(0, 2, 3)), clock.Total());
 
 		Transparency::RenderAll();
 		fps.Render(window);
