@@ -23,33 +23,44 @@ const float EPSILON = 0.001f;
 
 const vec4 materials[2] = vec4[](
     vec4(0.0), // Null Color
-    vec4(1.0, 0.0, 0.1, 1.0) // Maroon
+    vec4(0.2, 0.0, 1.0, 1.0) // Deep Purple
 );
+const float PI = 3.14159;
 
-// Mandelbox
-const float ITERS = 6;
-const float SCALE = 2.7f;
-const float MR2 = 0.25f;
+vec2 fold(vec2 p, float ang){
+    vec2 n = vec2(cos(-ang), sin(-ang));
+    p -= 2.0 * min(0.0, dot(p,n)) * n;
+    return p;
+}
 
-const vec4 scalevec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / MR2;
-const float C1 = abs(SCALE - 1.0), C2 = pow(abs(SCALE), float(1 - ITERS));
+vec3 tri_fold(vec3 pt) {
+    pt.xy = fold(pt.xy, PI / 6.0 - cos(time * 0.2) / 4.0f);
+    pt.xy = fold(pt.xy, -PI / 3.0);
+    pt.yz = fold(pt.yz, -PI / 6.0 + sin(time * 0.2) / 4.0);
+    pt.yz = fold(pt.yz, PI / 6.0);
+    return pt;
+}
 
-float mandelbox(vec3 position, out int object_id) {
-    object_id = 1;
-    vec4 p = vec4(position.xyz, 1.0), p0 = vec4(position.xyz, 1.0);
-    for (int i = 0; i < ITERS; i++) {
-        p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;
-        float r2 = dot(p.xyz, p.xyz);
-        p.xyzw *= clamp(max(MR2 / r2, MR2), 0.0, 1.0);
-        p.xyzw = p * scalevec + p0;
+vec3 tri_curve(vec3 pt) {
+    for (int i = 0; i < 7; i++) {
+        pt *= 2.0;
+        pt.x -= 2.6;
+        pt = tri_fold(pt);
     }
-    return (length(p.xyz) - C1) / p.w - C2;
+    return pt;
 }
 
-// Distance field representing the scene.
-float scene(vec3 p, out int object_id) {
-    return mandelbox(p * 10.0, object_id) / 10.0;
+float ifs(vec3 p){
+    p = tri_curve(p);
+    return (length(p * 0.004) - 0.008);
 }
+
+// Distance field representing our scene.
+float scene(vec3 p, out int object_id) {
+    object_id = 1;
+    return ifs(p * 4) / 4;
+}
+
 
 float ray_march(vec3 ro, vec3 rv, out int object_id) {
     float depth = MARCH_MIN_DIST;
@@ -161,7 +172,7 @@ void shader(vec3 ro, vec3 rv) {
     );
 
     color *= ambient_occulsion(normal, pos);
-    //color *= soft_shadow(pos, light_normal, 4.0);
+    color *= soft_shadow(pos, light_normal, 4.0);
     frag_color = vec4(pow(color, vec3(0.4545)), object_color.w);
 }
 

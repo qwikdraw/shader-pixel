@@ -18,37 +18,54 @@ out vec4 frag_color;
 
 const int MARCH_MAX = 255;
 const float MARCH_MIN_DIST = 0.0f;
-const float MARCH_MAX_DIST = 20.0f;
+const float MARCH_MAX_DIST = 10.0f;
 const float EPSILON = 0.001f;
 
-const vec4 materials[2] = vec4[](
+const vec4 materials[5] = vec4[](
     vec4(0.0), // Null Color
-    vec4(1.0, 0.0, 0.1, 1.0) // Maroon
+    vec4(0.1, 0.1, 0.1, 1.0), // Grey
+    vec4(0.6, 0.6, 0.6, 1.0), // Light grey
+    vec4(0.0, 1.0, 0.6, 1.0),
+    vec4(0.0, 0.1, 1.0, 1.0)
 );
 
-// Mandelbox
-const float ITERS = 6;
-const float SCALE = 2.7f;
-const float MR2 = 0.25f;
+float mandelbulb(vec3 p, out int object_id)
+{
+    vec3 w = p;
+    float m = dot(w,w);
+    float dz = 1.0;
 
-const vec4 scalevec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / MR2;
-const float C1 = abs(SCALE - 1.0), C2 = pow(abs(SCALE), float(1 - ITERS));
+    for (int i = 0; i < 4; i++)
+    {
+        float m2 = m*m;
+        float m4 = m2*m2;
+        dz = 8.0 * sqrt(m4 * m2 * m) * dz + 1.0;
 
-float mandelbox(vec3 position, out int object_id) {
-    object_id = 1;
-    vec4 p = vec4(position.xyz, 1.0), p0 = vec4(position.xyz, 1.0);
-    for (int i = 0; i < ITERS; i++) {
-        p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;
-        float r2 = dot(p.xyz, p.xyz);
-        p.xyzw *= clamp(max(MR2 / r2, MR2), 0.0, 1.0);
-        p.xyzw = p * scalevec + p0;
+        float x = w.x; float x2 = x * x; float x4 = x2 * x2;
+        float y = w.y; float y2 = y * y; float y4 = y2 * y2;
+        float z = w.z; float z2 = z * z; float z4 = z2 * z2;
+
+        float k3 = x2 + z2;
+        float k2 = inversesqrt(k3 * k3 * k3 * k3 * k3 * k3 * k3);
+        float k1 = x4 + y4 + z4 - 6.0 * y2 * z2 - 6.0 * x2 * y2 + 2.0 * z2 * x2;
+        float k4 = x2 - y2 + z2;
+
+        w.x = p.x +  64.0 * x * y * z * (x2-z2) * k4 * (x4 - 6.0 * x2 * z2 + z4) * k1 * k2;
+        w.y = p.y + -16.0 * y2 * k3 * k4 * k4 + k1 * k1;
+        w.z = p.z +  -8.0 * y * k4 * (x4 * x4 - 28.0 * x4 * x2 * z2 + 70.0 * x4 * z4 - 28.0 * x2 * z2 * z4 + z4 * z4) * k1 * k2;
+
+        m = dot(w, w);
+        if (m > 256.0)
+            break;
     }
-    return (length(p.xyz) - C1) / p.w - C2;
+    object_id = 1 + int(log(m)) % 4;
+
+    return 0.25 * log(m) * sqrt(m) / dz;
 }
 
 // Distance field representing the scene.
 float scene(vec3 p, out int object_id) {
-    return mandelbox(p * 10.0, object_id) / 10.0;
+    return mandelbulb(p * 2.0, object_id) / 2.0;
 }
 
 float ray_march(vec3 ro, vec3 rv, out int object_id) {
@@ -161,7 +178,7 @@ void shader(vec3 ro, vec3 rv) {
     );
 
     color *= ambient_occulsion(normal, pos);
-    //color *= soft_shadow(pos, light_normal, 4.0);
+    color *= soft_shadow(pos, light_normal, 4.0);
     frag_color = vec4(pow(color, vec3(0.4545)), object_color.w);
 }
 
