@@ -9,6 +9,7 @@
 #include "Light.hpp"
 #include "Transparency.hpp"
 #include "ShadingProgram.hpp"
+#include "RenderTarget.hpp"
 
 int	main(void)
 {
@@ -29,10 +30,14 @@ int	main(void)
 		"assets/textures/skybox/back.png"
 	);
 	ObjRender::Init();
-	ShaderObj shader("src/shaders/ifs.frag");
+	ShaderObj buffer("src/shaders/buffer.frag");
+	ShaderObj sphere("src/shaders/sphere.frag");
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
+
+	RenderTarget r1(500, 500);
+	RenderTarget r2(500, 500);
 
 	int lastSecond = 0;
 
@@ -50,14 +55,39 @@ int	main(void)
 
 		window.Clear();
 		cam.Update(clock.Delta());
+
+		r1.Use();
 		scene.Render(cam.GetCameraData());
+		sky.Render(cam.GetCameraData());
+
+		window.RemoveRenderMask();
+
+		r2.Use();
+		scene.Render(cam.GetCameraData());
+		sky.Render(cam.GetCameraData());
+		buffer.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1),
+			glm::vec3(0, 3, 0)),
+			clock.Total(),
+			true,
+			r1.TextureID());
+
+		window.RemoveRenderMask();
+
+
+		scene.Render(cam.GetCameraData());
+
 		sky.Render(cam.GetCameraData());
 
 		glm::mat4 tr = glm::mat4(2);
 		tr[3][3] = 1;
 
-		shader.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1), glm::vec3(0, 3, 0)), clock.Total());
+		buffer.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1),
+			glm::vec3(0, 3, 0)),
+			clock.Total(),
+			false,
+			r2.TextureID());
 
 		Transparency::RenderAll();
 		fps.Render(window);
