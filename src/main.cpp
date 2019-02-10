@@ -31,7 +31,7 @@ int	main(void)
 	);
 	ObjRender::Init();
 	ShaderObj buffer("src/shaders/buffer.frag");
-	ShaderObj sphere("src/shaders/sphere.frag");
+	ShaderObj wow("src/shaders/wow.frag");
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
@@ -88,6 +88,11 @@ int	main(void)
 			clock.Total(),
 			false,
 			r2.TextureID());
+
+		wow.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1),
+			glm::vec3(0, 3, 3)),
+			clock.Total());
 
 		Transparency::RenderAll();
 		fps.Render(window);
