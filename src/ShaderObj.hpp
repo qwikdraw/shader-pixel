@@ -4,7 +4,7 @@
 #include "ShadingProgram.hpp"
 #include "FreeCamera.hpp"
 #include "Light.hpp"
-#include "util_inc.hpp"
+#include "graphics_utilities.hpp"
 #include <iostream>
 
 class ShaderObj : public Transparency

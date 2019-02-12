@@ -1,11 +1,12 @@
 #pragma once
 
-#include "util_inc.hpp"
 #include <string>
 #include <map>
 #include <list>
 #include <algorithm>
 #include <sys/stat.h>
+#include <iostream>
+#include "graphics_utilities.hpp"
 
 class ShadingProgram
 {

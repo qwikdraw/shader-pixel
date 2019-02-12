@@ -4,14 +4,9 @@
 #define GLFW_INCLUDE_GLCOREARB
 
 #include <GLFW/glfw3.h>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <array>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/ext.hpp>
-#include <iomanip>
+
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF

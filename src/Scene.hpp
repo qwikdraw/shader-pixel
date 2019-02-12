@@ -3,7 +3,7 @@
 #include "FreeCamera.hpp"
 #include "ObjRender.hpp"
 
-#include "util_inc.hpp"
+#include "graphics_utilities.hpp"
 #include <string>
 #include <vector>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util_inc.hpp"
+#include "graphics_utilities.hpp"
 
 void	KeyCallback(GLFWwindow*, int key, int, int action, int);
 void	MouseButtonCallback(GLFWwindow*, int button, int action, int);

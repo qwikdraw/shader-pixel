@@ -144,8 +144,9 @@ void	Text::Render(float aspect)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
 
-	glBindTexture(GL_TEXTURE_2D, _textureID);
 	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, _textureID);
+
 	glUniform1i(_program->Uniform("tex"), 0);
 
 	glBindVertexArray(_VAO);

@@ -19,7 +19,7 @@ out vec4 frag_color;
 const int MARCH_MAX = 255;
 const float MARCH_MIN_DIST = 0.0f;
 const float MARCH_MAX_DIST = 20.0f;
-const float EPSILON = 0.001f;
+const float EPSILON = 0.0001f;
 
 const vec4 materials[2] = vec4[](
     vec4(0.0), // Null Color
@@ -27,22 +27,22 @@ const vec4 materials[2] = vec4[](
 );
 const float PI = 3.14159;
 
-vec2 fold(vec2 p, float ang){
-    vec2 n = vec2(cos(-ang), sin(-ang));
+vec2 fold(vec2 p, float rad){
+    vec2 n = vec2(cos(-rad), sin(-rad));
     p -= 2.0 * min(0.0, dot(p,n)) * n;
     return p;
 }
 
 vec3 tri_fold(vec3 pt) {
-    pt.xy = fold(pt.xy, PI / 6.0 - cos(time * 0.2) / 4.0f);
+    pt.xy = fold(pt.xy, PI / 6.0 - cos(time * 0.5) / 2.0);
     pt.xy = fold(pt.xy, -PI / 3.0);
-    pt.yz = fold(pt.yz, -PI / 6.0 + sin(time * 0.2) / 4.0);
-    pt.yz = fold(pt.yz, PI / 6.0);
+    pt.yz = fold(pt.yz, -PI / 6.0 + sin(time * 0.5) / 4.0);
+    pt.yz = fold(pt.yz, PI / 3.0);
     return pt;
 }
 
 vec3 tri_curve(vec3 pt) {
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 8; i++) {
         pt *= 2.0;
         pt.x -= 2.6;
         pt = tri_fold(pt);
@@ -52,21 +52,21 @@ vec3 tri_curve(vec3 pt) {
 
 float ifs(vec3 p){
     p = tri_curve(p);
-    return (length(p * 0.004) - 0.008);
+    return (length(p * 0.004) - 0.015);
 }
 
 // Distance field representing our scene.
-float scene(vec3 p, out int object_id) {
-    object_id = 1;
+float scene(vec3 p, out int material_id) {
+    material_id = 1;
     return ifs(p * 4) / 4;
 }
 
 
-float ray_march(vec3 ro, vec3 rv, out int object_id) {
+float ray_march(vec3 ro, vec3 rv, out int material_id) {
     float depth = MARCH_MIN_DIST;
     for (int i = 0; i < MARCH_MAX; ++i)
     {
-        float min_distance = scene(ro + rv * depth, object_id);
+        float min_distance = scene(ro + rv * depth, material_id);
         depth += min_distance;
         if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
             break;
@@ -150,15 +150,15 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
 
 void shader(vec3 ro, vec3 rv) {
 
-    int object_id;
-    float dist = ray_march(ro, rv, object_id);
+    int material_id;
+    float dist = ray_march(ro, rv, material_id);
     if (dist > MARCH_MAX_DIST - EPSILON)
         discard;
     vec3 pos = ro + rv * dist;
 
     vec3 normal = get_normal(pos);
 
-    vec4 object_color = materials[object_id];
+    vec4 object_color = materials[material_id];
 
     vec3 light_normal = vec3(0.0, 5.0, 0.0) - pos; 
 
@@ -172,7 +172,7 @@ void shader(vec3 ro, vec3 rv) {
     );
 
     color *= ambient_occulsion(normal, pos);
-    color *= soft_shadow(pos, light_normal, 4.0);
+    //color *= soft_shadow(pos, light_normal, 4.0);
     frag_color = vec4(pow(color, vec3(0.4545)), object_color.w);
 }
 

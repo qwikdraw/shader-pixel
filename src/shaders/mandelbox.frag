@@ -34,8 +34,8 @@ const float MR2 = 0.25f;
 const vec4 scalevec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / MR2;
 const float C1 = abs(SCALE - 1.0), C2 = pow(abs(SCALE), float(1 - ITERS));
 
-float mandelbox(vec3 position, out int object_id) {
-    object_id = 1;
+float mandelbox(vec3 position, out int material_id) {
+    material_id = 1;
     vec4 p = vec4(position.xyz, 1.0), p0 = vec4(position.xyz, 1.0);
     for (int i = 0; i < ITERS; i++) {
         p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;
@@ -47,15 +47,15 @@ float mandelbox(vec3 position, out int object_id) {
 }
 
 // Distance field representing the scene.
-float scene(vec3 p, out int object_id) {
-    return mandelbox(p * 10.0, object_id) / 10.0;
+float scene(vec3 p, out int material_id) {
+    return mandelbox(p * 10.0, material_id) / 10.0;
 }
 
-float ray_march(vec3 ro, vec3 rv, out int object_id) {
+float ray_march(vec3 ro, vec3 rv, out int material_id) {
     float depth = MARCH_MIN_DIST;
     for (int i = 0; i < MARCH_MAX; ++i)
     {
-        float min_distance = scene(ro + rv * depth, object_id);
+        float min_distance = scene(ro + rv * depth, material_id);
         depth += min_distance;
         if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
             break;
@@ -139,15 +139,15 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
 
 void shader(vec3 ro, vec3 rv) {
 
-    int object_id;
-    float dist = ray_march(ro, rv, object_id);
+    int material_id;
+    float dist = ray_march(ro, rv, material_id);
     if (dist > MARCH_MAX_DIST - EPSILON)
         discard;
     vec3 pos = ro + rv * dist;
 
     vec3 normal = get_normal(pos);
 
-    vec4 object_color = materials[object_id];
+    vec4 object_color = materials[material_id];
 
     vec3 light_normal = vec3(0.0, 5.0, 0.0) - pos; 
 

@@ -16,9 +16,9 @@ uniform float time;
 
 out vec4 frag_color;
 
-const int MARCH_MAX = 255;
+const int MARCH_MAX = 128;
 const float MARCH_MIN_DIST = 0.0f;
-const float MARCH_MAX_DIST = 10.0f;
+const float MARCH_MAX_DIST = 256.0f;
 const float EPSILON = 0.001f;
 
 const vec4 materials[5] = vec4[](
@@ -29,7 +29,7 @@ const vec4 materials[5] = vec4[](
     vec4(0.0, 0.1, 1.0, 1.0)
 );
 
-float mandelbulb(vec3 p, out int object_id)
+float mandelbulb(vec3 p, out int material_id)
 {
     vec3 w = p;
     float m = dot(w,w);
@@ -58,21 +58,21 @@ float mandelbulb(vec3 p, out int object_id)
         if (m > 256.0)
             break;
     }
-    object_id = 1 + int(log(m)) % 4;
+    material_id = 1 + int(log(m)) % 4;
 
     return 0.25 * log(m) * sqrt(m) / dz;
 }
 
 // Distance field representing the scene.
-float scene(vec3 p, out int object_id) {
-    return mandelbulb(p * 2.0, object_id) / 2.0;
+float scene(vec3 p, out int material_id) {
+    return mandelbulb(p * 2.0, material_id) / 2.0;
 }
 
-float ray_march(vec3 ro, vec3 rv, out int object_id) {
+float ray_march(vec3 ro, vec3 rv, out int material_id) {
     float depth = MARCH_MIN_DIST;
     for (int i = 0; i < MARCH_MAX; ++i)
     {
-        float min_distance = scene(ro + rv * depth, object_id);
+        float min_distance = scene(ro + rv * depth, material_id);
         depth += min_distance;
         if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
             break;
@@ -85,7 +85,7 @@ float ray_march(vec3 ro, vec3 rv, out int object_id) {
 
 // 1 for less accurate but faster normal, 0 for accurate but slower version.
 
-#if 1
+#if 0
 
 vec3 get_normal(vec3 p) {
     int _;
@@ -143,7 +143,7 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
     float res = 1.0;
     int _;
     light_normal = normalize(light_normal);
-    for (float depth = EPSILON * 2.0; depth < 20.0;)
+    for (float depth = 0.01; depth < 20.0;)
     {
         float min_distance = scene(pos + light_normal * depth, _);
         if (min_distance < 0.001)
@@ -156,15 +156,15 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
 
 void shader(vec3 ro, vec3 rv) {
 
-    int object_id;
-    float dist = ray_march(ro, rv, object_id);
+    int material_id;
+    float dist = ray_march(ro, rv, material_id);
     if (dist > MARCH_MAX_DIST - EPSILON)
         discard;
     vec3 pos = ro + rv * dist;
 
     vec3 normal = get_normal(pos);
 
-    vec4 object_color = materials[object_id];
+    vec4 object_color = materials[material_id];
 
     vec3 light_normal = vec3(0.0, 5.0, 0.0) - pos; 
 

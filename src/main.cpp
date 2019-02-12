@@ -10,12 +10,13 @@
 #include "Transparency.hpp"
 #include "ShadingProgram.hpp"
 #include "RenderTarget.hpp"
+#include "PostProcess.hpp"
 
 int	main(void)
 {
 	GLenum err;
 
-	Window window(1280, 720, "shader_pixel");
+	Window window(1920, 1080, "shader_pixel");
 	glClearColor(0.2, 0.25, 0.3, 1);
 
 	FPSDisplay fps;
@@ -30,21 +31,21 @@ int	main(void)
 		"assets/textures/skybox/back.png"
 	);
 	ObjRender::Init();
-	ShaderObj buffer("src/shaders/buffer.frag");
-	ShaderObj sphere("src/shaders/sphere.frag");
+	ShaderObj shader("src/shaders/ifs.frag");
 	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
 
-	RenderTarget r1(500, 500);
-	RenderTarget r2(500, 500);
-
 	int lastSecond = 0;
+
+	RenderTarget postBuffer(1920, 1080);
+
+	PostProcess post("src/shaders/post_dof.frag");
 
 	while (!window.ShouldClose())
 	{
-		if ((err = glGetError()) != GL_NO_ERROR)
-			std::cerr << err << std::endl;
+		//if ((err = glGetError()) != GL_NO_ERROR)
+		//	std::cerr << err << std::endl;
 		clock.Step();
 
 		if (int(clock.Total()) > lastSecond)
@@ -56,44 +57,29 @@ int	main(void)
 		window.Clear();
 		cam.Update(clock.Delta());
 
-		r1.Use();
-		scene.Render(cam.GetCameraData());
-		sky.Render(cam.GetCameraData());
-
-		window.RemoveRenderMask();
-
-		r2.Use();
-		scene.Render(cam.GetCameraData());
-		sky.Render(cam.GetCameraData());
-		buffer.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1),
-			glm::vec3(0, 3, 0)),
-			clock.Total(),
-			true,
-			r1.TextureID());
-
-		window.RemoveRenderMask();
-
+		postBuffer.Use();
 
 		scene.Render(cam.GetCameraData());
+
+		shader.Render(cam.GetCameraData(),
+			glm::translate(glm::mat4(1), glm::vec3(0, 3, 0)), clock.Total());
 
 		sky.Render(cam.GetCameraData());
 
 		glm::mat4 tr = glm::mat4(2);
 		tr[3][3] = 1;
 
-		buffer.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1),
-			glm::vec3(0, 3, 0)),
-			clock.Total(),
-			false,
-			r2.TextureID());
-
 		Transparency::RenderAll();
+
+		window.RemoveRenderMask();
+		post.Render(postBuffer, clock.Total()                                                                                                                                                                                                                     );
+		
 		fps.Render(window);
+
 		window.Render();
 		if (window.Key(GLFW_KEY_ESCAPE))
 			break;
+
 	}
 	window.Close();
 }
