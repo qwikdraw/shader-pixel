@@ -15,7 +15,8 @@ class PostProcess
 	static constexpr const char* _vertexPath = "src/shaders/post.vert";
 	static const GLfloat _vertexArray[8];
 
-	ShadingProgram* _program;
+	ShadingProgram _program;
+	GLuint _vertexArrayID;
 	GLuint _VAO;
 
 public:

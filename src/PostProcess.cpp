@@ -7,16 +7,15 @@ const GLfloat PostProcess::_vertexArray[8] = {
 	+1.0f, +1.0f,
 };
 
-PostProcess::PostProcess(const char* fragPath)
+PostProcess::PostProcess(const char* fragPath) : 
+_program(ShadingProgram(_vertexPath, fragPath, true))
 {
-	_program = new ShadingProgram(_vertexPath, fragPath, true);
 
 	glGenVertexArrays(1, &_VAO);
 	glBindVertexArray(_VAO);
 
-	GLuint vertexArrayID;
-	glGenBuffers(1, &vertexArrayID);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexArrayID);
+	glGenBuffers(1, &_vertexArrayID);
+	glBindBuffer(GL_ARRAY_BUFFER, _vertexArrayID);
 	glBufferData(GL_ARRAY_BUFFER,
 		sizeof(_vertexArray),
 		_vertexArray,
@@ -31,28 +30,29 @@ PostProcess::PostProcess(const char* fragPath)
 
 PostProcess::~PostProcess()
 {
-	//glDeleteVertexArrays(1, &_VAO);
+	glDeleteBuffers(1, &_vertexArrayID);
+	glDeleteVertexArrays(1, &_VAO);
 }
 
 void PostProcess::Render(GLuint textureID, GLuint depthID, float width, float height, double time)
 {
 	GLuint err;
-	_program->Use();
+	_program.Use();
 
 	// Color buffer
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glUniform1i(_program->Uniform("color_buffer"), 0);
+	glUniform1i(_program.Uniform("color_buffer"), 0);
 
 	// Depth buffer
 	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, depthID);
-	glUniform1i(_program->Uniform("depth_buffer"), 1);
+	glUniform1i(_program.Uniform("depth_buffer"), 1);
 
 	GLfloat pixel_size[2] = {width, height};
-	glUniform2fv(_program->Uniform("pixel_size"), 1, pixel_size);
+	glUniform2fv(_program.Uniform("pixel_size"), 1, pixel_size);
 
-	glUniform1f(_program->Uniform("time"), time);
+	glUniform1f(_program.Uniform("time"), time);
 
 	glBindVertexArray(_VAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
