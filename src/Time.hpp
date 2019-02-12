@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util_inc.hpp"
+#include "graphics_utilities.hpp"
 
 //! Time utility class
 class Time

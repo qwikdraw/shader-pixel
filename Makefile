@@ -13,7 +13,8 @@ Scene \
 ShaderObj \
 Light \
 Transparency \
-RenderTarget
+RenderTarget \
+PostProcess
 
 OBJ_DIR = obj
 

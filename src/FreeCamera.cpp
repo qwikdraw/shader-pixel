@@ -1,4 +1,5 @@
 #include <math.h>
+#include <fstream>
 #include "FreeCamera.hpp"
 
 FreeCamera::FreeCamera(Window& window, double yaw, double pitch) : _window(window)
