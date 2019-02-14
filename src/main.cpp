@@ -4,7 +4,6 @@
 #include "Time.hpp"
 #include "SkyBox.hpp"
 #include "ObjRender.hpp"
-#include "Scene.hpp"
 #include "ShaderObj.hpp"
 #include "Light.hpp"
 #include "Transparency.hpp"
@@ -32,7 +31,6 @@ int	main(void)
 	);
 	ObjRender::Init();
 	ShaderObj shader("src/shaders/ifs.frag");
-	Scene scene;
 
 	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
 
@@ -42,10 +40,12 @@ int	main(void)
 
 	PostProcess post("src/shaders/post_dof.frag");
 
+	ObjRender scene("sky_island.obj");
+
 	while (!window.ShouldClose())
 	{
-		//if ((err = glGetError()) != GL_NO_ERROR)
-		//	std::cerr << err << std::endl;
+		if ((err = glGetError()) != GL_NO_ERROR)
+			std::cerr << err << std::endl;
 		clock.Step();
 
 		if (int(clock.Total()) > lastSecond)
@@ -59,15 +59,12 @@ int	main(void)
 
 		postBuffer.Use();
 
-		scene.Render(cam.GetCameraData());
+		scene.Render(cam.GetCameraData(), glm::mat4(1.0));
 
 		shader.Render(cam.GetCameraData(),
-			glm::translate(glm::mat4(1), glm::vec3(0, 3, 0)), clock.Total());
+			glm::translate(glm::mat4(1), glm::vec3(5, 10, 0)), clock.Total());
 
 		sky.Render(cam.GetCameraData());
-
-		glm::mat4 tr = glm::mat4(2);
-		tr[3][3] = 1;
 
 		Transparency::RenderAll();
 

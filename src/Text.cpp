@@ -20,8 +20,9 @@ Text::Text(std::string message)
 
 	_square.resize(12);
 	_uv.resize(12);
-
 	_program->Use();
+
+	glGenVertexArrays(1, &_VAO);
 
 	glGenBuffers(1, &_squareID);
 	glBindBuffer(GL_ARRAY_BUFFER, _squareID);
@@ -39,7 +40,6 @@ Text::Text(std::string message)
 
 	Texture textureParser(_fontFile);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glGenTextures(1, &_textureID);
 	glBindTexture(GL_TEXTURE_2D, _textureID);
 	glTexImage2D(GL_TEXTURE_2D,
@@ -57,10 +57,7 @@ Text::Text(std::string message)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glGenerateMipmap(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(_program->Uniform("tex"), 0);
-
-	glGenVertexArrays(1, &_VAO);
 
 	_init = true;
 }
@@ -88,8 +85,6 @@ void	Text::RenderChar(char c, glm::vec2 topleft, glm::vec2 botright)
 	_uv[8] = botrightUV.x; _uv[9] = topleftUV.y;
 	_uv[10] = botrightUV.x; _uv[11] = botrightUV.y;
 
-
-
 	glBindBuffer(GL_ARRAY_BUFFER, _squareID);
 	glBufferData(GL_ARRAY_BUFFER,
 		12  * sizeof(GLfloat),
@@ -98,7 +93,7 @@ void	Text::RenderChar(char c, glm::vec2 topleft, glm::vec2 botright)
 	glBufferSubData(GL_ARRAY_BUFFER,
 		0,
 		12 * sizeof(GLfloat),
-		&_square[0]);
+		_square.data());
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -111,14 +106,12 @@ void	Text::RenderChar(char c, glm::vec2 topleft, glm::vec2 botright)
 	glBufferSubData(GL_ARRAY_BUFFER,
 		0,
 		12 * sizeof(GLfloat),
-		&_uv[0]);
+		_uv.data());
+
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
 }
 
 void	Text::Render(float aspect)

@@ -7,8 +7,8 @@ FreeCamera::FreeCamera(Window& window, double yaw, double pitch) : _window(windo
 	_data.position = glm::vec3(0, 1, 0);
 	_data.direction = glm::vec3(0, 0, -1);
 	_aspect = 1.0;
-	_near = 0.1;
-	_far = 500.0;
+	_near = 0.5;
+	_far = 400.0;
 	_fov = 80.0;
 	_yaw = yaw;
 	_pitch = pitch;

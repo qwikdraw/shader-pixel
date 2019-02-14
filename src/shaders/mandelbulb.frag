@@ -37,6 +37,13 @@ float mandelbulb(vec3 p, out int material_id)
 
     for (int i = 0; i < 4; i++)
     {
+        #if 1 // Efficient version using Multiple angles theorem
+        /*
+        Based on using https://en.wikipedia.org/wiki/List_of_trigonometric_identities#Multiple-angle_formulae
+        to remove the expensive trig calls, and algebraic expansion of the pow calls.
+        roughly 2x as fast.
+        */
+
         float m2 = m*m;
         float m4 = m2*m2;
         dz = 8.0 * sqrt(m4 * m2 * m) * dz + 1.0;
@@ -53,6 +60,16 @@ float mandelbulb(vec3 p, out int material_id)
         w.x = p.x +  64.0 * x * y * z * (x2-z2) * k4 * (x4 - 6.0 * x2 * z2 + z4) * k1 * k2;
         w.y = p.y + -16.0 * y2 * k3 * k4 * k4 + k1 * k1;
         w.z = p.z +  -8.0 * y * k4 * (x4 * x4 - 28.0 * x4 * x2 * z2 + 70.0 * x4 * z4 - 28.0 * x2 * z2 * z4 + z4 * z4) * k1 * k2;
+
+        #else // Standard formula for mandelbulb, note the pow and trig.
+
+        dz = 8.0 * pow(sqrt(m), 7.0) * dz + 1.0;
+
+        float r = length(w);
+        float b = 8.0 * acos(w.y / r);
+        float a = 8.0 * atan(w.x, w.z);
+        w = p + pow(r, 8.0) * vec3(sin(b) * sin(a), cos(b), sin(b) * cos(a));
+        #endif
 
         m = dot(w, w);
         if (m > 256.0)
@@ -75,6 +92,7 @@ float ray_march(vec3 ro, vec3 rv, out int material_id) {
         float min_distance = scene(ro + rv * depth, material_id);
         depth += min_distance;
         if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
+            frag_color = vec4(vec3(log(i)), 1.0);
             break;
         }
     }

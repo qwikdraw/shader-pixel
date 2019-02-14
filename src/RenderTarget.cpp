@@ -20,7 +20,7 @@ _x(x), _y(y)
 	
 	float anisotropy;
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisotropy);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+	glTexParameterf(GL_TEXTURE_2D, fmin(GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0), anisotropy);
 	// Attach to framebuffer
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture, 0);
 

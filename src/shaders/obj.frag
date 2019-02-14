@@ -7,10 +7,14 @@ in vec2 uv_v;
 
 uniform sampler2D tex;
 
-layout(location = 0) out vec3 color;
+out vec4 frag_color;
 
-void	main()
+void    main()
 {
-    float modify = abs(dot(normalize(dir_v), normalize(normal_v)));
-    color = texture(tex, uv_v).rgb * modify;
+    float modify = abs(dot(vec3(0.0, 1.0, 0.0), normalize(normal_v)));
+    vec4 color_sample = texture(tex, uv_v).rgba;
+    if ((color_sample.r + color_sample.g) > 1.0 && color_sample.b < 0.4)
+        frag_color = color_sample * vec4(1.0, 1.0, modify, 1.0);
+    else
+        frag_color = color_sample * modify;
 }

@@ -47,4 +47,9 @@ public:
 	void Render(
 		const CameraData& cam_data,
 		const std::vector<glm::mat4>& transforms);
+
+	// render single object
+	void Render(
+		const CameraData& cam_data,
+		const glm::mat4& transforms);
 };
