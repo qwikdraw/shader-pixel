@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util_inc.hpp"
+#include "graphics_utilities.hpp"
 #include "FreeCamera.hpp"
 #include "Texture.hpp"
 #include "ShadingProgram.hpp"

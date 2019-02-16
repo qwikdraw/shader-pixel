@@ -1,3 +1,4 @@
+#include <vector>
 #include "Light.hpp"
 
 std::vector<glm::vec3> Light::_positions;

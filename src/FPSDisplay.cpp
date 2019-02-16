@@ -1,3 +1,5 @@
+#include <sstream>
+#include <iomanip>
 #include "FPSDisplay.hpp"
 
 FPSDisplay::FPSDisplay()

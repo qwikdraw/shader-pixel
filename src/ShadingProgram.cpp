@@ -1,3 +1,5 @@
+#include <fstream>
+#include <sstream>
 #include "ShadingProgram.hpp"
 
 std::list<ShadingProgram*> ShadingProgram::_updateList;

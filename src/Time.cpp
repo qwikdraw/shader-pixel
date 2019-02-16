@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Time.hpp"
 
 Time::Time(void)
