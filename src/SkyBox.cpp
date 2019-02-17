@@ -86,6 +86,9 @@ void SkyBox::_loadTextures(const std::vector<Texture*>& textures)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	float anisotropy;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisotropy);
+	glTexParameterf(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_ANISOTROPY_EXT, fmin(anisotropy, 16.0));
 }
 
 void SkyBox::_makeVAO()
@@ -116,6 +119,7 @@ SkyBox::SkyBox(std::string right, std::string left, std::string top,
 	textures.push_back(new Texture(back));
 	textures.push_back(new Texture(front));
 	_loadTextures(textures);
+
 	_makeVAO();
 }
 
@@ -137,8 +141,8 @@ void	SkyBox::Render(const CameraData& cam_data)
 		glm::value_ptr(transform)
 	);
 
-	glBindTexture(GL_TEXTURE_CUBE_MAP, _textureID);
 	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, _textureID);
 	glUniform1i(_program->Uniform("tex"), 0);
 	glBindVertexArray(_VAO);
 

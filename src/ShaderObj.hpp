@@ -14,7 +14,7 @@ class ShaderObj : public Transparency
 	GLuint _cubeID;
 	GLuint _VAO;
 
-	ShadingProgram* _program;
+	ShadingProgram _program;
 
 	float _total_time;
 	GLuint _texID;

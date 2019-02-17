@@ -6,7 +6,6 @@
 #include <iostream>
 #include <map>
 #include <stdint.h>
-#include "lodepng.h"
 
 class	Texture
 {
@@ -14,15 +13,14 @@ private:
 
 	struct TextureInfo
 	{
-		std::vector<uint8_t>* data;
-		unsigned width;
-		unsigned height;
+		uint8_t* data;
+		int width;
+		int height;
+		int channels;
 	};
 
 	static std::map<std::string, TextureInfo> _cache;
-	std::vector<uint8_t> *_imageData;
-	unsigned _width;
-	unsigned _height;
+	TextureInfo _texture;
 	
 public:
 

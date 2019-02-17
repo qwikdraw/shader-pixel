@@ -9,7 +9,6 @@ SkyBox \
 Texture \
 Text \
 ObjRender \
-Scene \
 ShaderObj \
 Light \
 Transparency \
@@ -29,14 +28,14 @@ MAKEFLAGS=-j4
 CPPFLAGS = -std=c++14 -Wall -Wextra -Werror -Wno-unused-parameter \
 -Wno-unused-variable \
 $(shell pkg-config --cflags glfw3 glm) \
--I lib/lodepng \
+-I lib/stb -I lib/tiny_obj_loader \
 -g -O3 -march=native \
 #-fsanitize=address -fsanitize=undefined
 
 LDFLAGS = -framework OpenGl \
 $(shell pkg-config --libs glfw3 glm) \
--L lib/lodepng -llodepng -pipe \
-#-fsanitize=address -fsanitize=undefined
+ -pipe \
+-fsanitize=address -fsanitize=undefined
 
 all: $(OBJ_DIR) $(NAME)
 
@@ -49,12 +48,7 @@ $(OBJ_DIR)/%.o: %.cpp
 	@printf "\e[34;1mCompiling: \e[0m%s\n" $<
 	@clang++ $(CPPFLAGS) -MMD -c $< -o $@
 
-lib/lodepng/liblodepng.a: lib/lodepng/lodepng.cpp
-	@printf "\e[35;1mCompiling Dependency: \e[0m%s\n" $<
-	@clang++ $(CPPFLAGS) -pipe -flto=thin -c -o lib/lodepng/lodepng.o $<
-	@ar rcs $@ lib/lodepng/lodepng.o
-
-$(NAME): lib/lodepng/liblodepng.a $(OBJ)
+$(NAME): $(OBJ)
 	@echo "\033[32;1mLinking.. \033[0m"
 	@clang++ $(LDFLAGS) -o $@ $^
 	@echo "\033[32;1mCreated:\033[0m "$(NAME)

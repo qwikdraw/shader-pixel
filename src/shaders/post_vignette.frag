@@ -7,10 +7,6 @@ uniform sampler2D color_buffer;
 uniform sampler2D depth_buffer;
 uniform vec2 pixel_size;
 
-float rand(vec2 co){
-	return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
-}
-
 void main(void) {
 	vec3 c = texture(color_buffer, uv).rgb;
 
@@ -24,6 +20,5 @@ void main(void) {
 
 	c *= x;
 
-	float a = texture(depth_buffer, uv).r;
 	color = c;
 }

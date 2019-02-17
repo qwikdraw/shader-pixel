@@ -35,6 +35,7 @@ class ObjRender
 	void _makeVAO();
 
 	void _loadTexture(const std::string& filepath);
+	void _render(const CameraData& cam_data);
 
 public:
 
@@ -47,4 +48,9 @@ public:
 	void Render(
 		const CameraData& cam_data,
 		const std::vector<glm::mat4>& transforms);
+
+	// render single object
+	void Render(
+		const CameraData& cam_data,
+		const glm::mat4& transforms);
 };

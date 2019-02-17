@@ -7,10 +7,10 @@ in vec2 uv_v;
 
 uniform sampler2D tex;
 
-layout(location = 0) out vec3 color;
+out vec4 frag_color;
 
-void	main()
+void    main()
 {
-    float modify = abs(dot(normalize(dir_v), normalize(normal_v)));
-    color = texture(tex, uv_v).rgb * modify;
+    float modify = abs(dot(vec3(0.0, 1.0, 0.0), normalize(normal_v)));
+    frag_color = vec4(texture(tex, uv_v).rgb * modify, 1.0);
 }

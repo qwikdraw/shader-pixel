@@ -16,10 +16,10 @@ uniform float time;
 
 out vec4 frag_color;
 
-const int MARCH_MAX = 255;
+const int MARCH_MAX = 128;
 const float MARCH_MIN_DIST = 0.0f;
-const float MARCH_MAX_DIST = 20.0f;
-const float EPSILON = 0.0001f;
+const float MARCH_MAX_DIST = 40.0f;
+const float EPSILON = 0.001f;
 
 const vec4 materials[2] = vec4[](
     vec4(0.0), // Null Color
@@ -34,14 +34,15 @@ vec2 fold(vec2 p, float rad){
 }
 
 vec3 tri_fold(vec3 pt) {
-    pt.xy = fold(pt.xy, PI / 6.0 - cos(time * 0.5) / 2.0);
+    pt.xy = fold(pt.xy, PI / 6.0 - cos(time * 0.4) / 2.0);
     pt.xy = fold(pt.xy, -PI / 3.0);
-    pt.yz = fold(pt.yz, -PI / 6.0 + sin(time * 0.5) / 4.0);
+    pt.yz = fold(pt.yz, -PI / 6.0 + sin(time * 0.4) / 4.0);
     pt.yz = fold(pt.yz, PI / 3.0);
     return pt;
 }
 
-vec3 tri_curve(vec3 pt) {
+vec3 tri_curve(vec3 pt)
+{
     for (int i = 0; i < 8; i++) {
         pt *= 2.0;
         pt.x -= 2.6;
@@ -58,17 +59,19 @@ float ifs(vec3 p){
 // Distance field representing our scene.
 float scene(vec3 p, out int material_id) {
     material_id = 1;
-    return ifs(p * 4) / 4;
+    // Scale down 30% and translate 1.0 on x to center in box
+    return ifs((p + vec3(1.0, 0.0, 0.0)) * 1.3) / 1.3;
 }
 
 
-float ray_march(vec3 ro, vec3 rv, out int material_id) {
+float ray_march(vec3 ro, vec3 rv, out int material_id, out int steps) {
     float depth = MARCH_MIN_DIST;
     for (int i = 0; i < MARCH_MAX; ++i)
     {
         float min_distance = scene(ro + rv * depth, material_id);
         depth += min_distance;
         if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
+            steps = i;
             break;
         }
     }
@@ -79,7 +82,7 @@ float ray_march(vec3 ro, vec3 rv, out int material_id) {
 
 // 1 for less accurate but faster normal, 0 for accurate but slower version.
 
-#if 1
+#if 0
 
 vec3 get_normal(vec3 p) {
     int _;
@@ -104,22 +107,25 @@ vec3 get_normal(vec3 p) {
 
 #endif
 
-float ambient_occulsion(vec3 normal, vec3 pos)
+float ambient_occulsion(vec3 normal, vec3 pos, int steps)
 {
     int _;
     float x = 0.0;
     x += 0.1 - scene(pos + normal * 0.1, _);
+    x += 0.2 - scene(pos + normal * 0.2, _);
     x += 0.3 - scene(pos + normal * 0.3, _);
-    x += 0.5 - scene(pos + normal * 0.5, _);
-    return 1.0 - x;
+    float t = (MARCH_MAX - (pow(steps, 1.4))) / MARCH_MAX;
+    return mix(1.0 - x, t, 0.5);
 }
 
 vec3 phong(vec3 normal, vec3 material_color, vec3 cam_dir, vec3 light_normal, vec3 light_color, float light_strength)
 {
-    float distance = length(light_normal);
+    float distance2 = length(light_normal);
+    distance2 *= distance2;
+
     light_normal = normalize(light_normal);
 
-    float diffuse = clamp(dot(normal, light_normal), 0.0, 1.0);
+    float diffuse = dot(normal, light_normal);
 
     vec3 reflected_light_dir = normalize(reflect(light_normal, normal));
 
@@ -128,8 +134,7 @@ vec3 phong(vec3 normal, vec3 material_color, vec3 cam_dir, vec3 light_normal, ve
     vec3 diffuse_color = material_color * max(diffuse, 0.02);
     vec3 specular_color = light_color * specular;
 
-    distance *= distance;
-    return (diffuse_color + specular_color) * light_strength / distance;
+    return (diffuse_color + specular_color) * light_strength / distance2;
 }
 
 float soft_shadow(vec3 pos, vec3 light_normal, float softness)
@@ -140,18 +145,19 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
     for (float depth = EPSILON * 2.0; depth < 20.0;)
     {
         float min_distance = scene(pos + light_normal * depth, _);
-        if (min_distance < 0.001)
-            return 0.02;
+        if (min_distance < EPSILON / 2.0)
+            return 0.002;
         res = min(res, softness * min_distance / depth);
         depth += min_distance;
     }
     return res;
 }
 
-void shader(vec3 ro, vec3 rv) {
-
+void shader(vec3 ro, vec3 rv)
+{
     int material_id;
-    float dist = ray_march(ro, rv, material_id);
+    int steps;
+    float dist = ray_march(ro, rv, material_id, steps);
     if (dist > MARCH_MAX_DIST - EPSILON)
         discard;
     vec3 pos = ro + rv * dist;
@@ -171,8 +177,8 @@ void shader(vec3 ro, vec3 rv) {
         40.0 // Light strength
     );
 
-    color *= ambient_occulsion(normal, pos);
-    //color *= soft_shadow(pos, light_normal, 4.0);
+    color *= ambient_occulsion(normal, pos, steps);
+    color *= soft_shadow(pos, light_normal, 4.0);
     frag_color = vec4(pow(color, vec3(0.4545)), object_color.w);
 }
 

@@ -1,7 +1,7 @@
 #include "ObjRender.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "third_party/tiny_obj_loader.h"
+#include "tiny_obj_loader.h"
 
 #include <iostream>
 
@@ -180,33 +180,47 @@ void ObjRender::_loadTexture(const std::string& filepath)
 
 	float anisotropy;
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisotropy);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, fmin(anisotropy, 16.0));
 }
 
+void ObjRender::_render(const CameraData& cam_data)
+{
+	_program->Use();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, _texID);
+	glUniform1i(_program->Uniform("tex"), 0);
+
+	glBindVertexArray(_VAO);
+	glUniform3fv(_program->Uniform("campos"), 1, glm::value_ptr(cam_data.position));
+	glUniformMatrix4fv(_program->Uniform("worldToScreen"), 1, GL_FALSE,
+		glm::value_ptr(cam_data.worldToScreen));
+
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+	glCullFace(GL_BACK);
+}
 
 void ObjRender::Render(
 	const CameraData& cam_data,
 	const std::vector<glm::mat4>& transforms)
 {
-	_program->Use();
-	glBindTexture(GL_TEXTURE_2D, _texID);
-	glActiveTexture(GL_TEXTURE0);
-	glUniform1i(_program->Uniform("tex"), 0);
-
-	glBindVertexArray(_VAO);
-	glUniform3fv(_program->Uniform("campos"), 1, &cam_data.position[0]);
-	glUniformMatrix4fv(_program->Uniform("worldToScreen"), 1, GL_FALSE,
-		glm::value_ptr(cam_data.worldToScreen));
-
-
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CCW);
-	glCullFace(GL_BACK);
+	_render(cam_data);
 	for (auto& transform : transforms)
 	{
 		glUniformMatrix4fv(_program->Uniform("transform"), 1, GL_FALSE,
 			glm::value_ptr(transform));
 		glDrawArrays(GL_TRIANGLES, 0, _vertexCount);
 	}
+	glDisable(GL_CULL_FACE);
+}
+
+void ObjRender::Render(
+	const CameraData& cam_data,
+	const glm::mat4& transform)
+{
+	_render(cam_data);
+	glUniformMatrix4fv(_program->Uniform("transform"), 1, GL_FALSE, glm::value_ptr(transform));
+	glDrawArrays(GL_TRIANGLES, 0, _vertexCount);
 	glDisable(GL_CULL_FACE);
 }

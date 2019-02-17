@@ -34,6 +34,7 @@ const float MR2 = 0.25f;
 const vec4 scalevec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / MR2;
 const float C1 = abs(SCALE - 1.0), C2 = pow(abs(SCALE), float(1 - ITERS));
 
+// Knightly's formula
 float mandelbox(vec3 position, out int material_id) {
     material_id = 1;
     vec4 p = vec4(position.xyz, 1.0), p0 = vec4(position.xyz, 1.0);
