@@ -34,14 +34,15 @@ vec2 fold(vec2 p, float rad){
 }
 
 vec3 tri_fold(vec3 pt) {
-    pt.xy = fold(pt.xy, PI / 6.0 - cos(time * 0.1) / 2.0);
+    pt.xy = fold(pt.xy, PI / 6.0 - cos(time * 0.4) / 2.0);
     pt.xy = fold(pt.xy, -PI / 3.0);
-    pt.yz = fold(pt.yz, -PI / 6.0 + sin(time * 0.1) / 4.0);
+    pt.yz = fold(pt.yz, -PI / 6.0 + sin(time * 0.4) / 4.0);
     pt.yz = fold(pt.yz, PI / 3.0);
     return pt;
 }
 
-vec3 tri_curve(vec3 pt) {
+vec3 tri_curve(vec3 pt)
+{
     for (int i = 0; i < 8; i++) {
         pt *= 2.0;
         pt.x -= 2.6;
@@ -113,12 +114,8 @@ float ambient_occulsion(vec3 normal, vec3 pos, int steps)
     x += 0.1 - scene(pos + normal * 0.1, _);
     x += 0.2 - scene(pos + normal * 0.2, _);
     x += 0.3 - scene(pos + normal * 0.3, _);
-    #if 0 // Use steps for ao, looks better objects with high detail
-    return 1.0 - x;
-    #else
     float t = (MARCH_MAX - (pow(steps, 1.4))) / MARCH_MAX;
     return mix(1.0 - x, t, 0.5);
-    #endif
 }
 
 vec3 phong(vec3 normal, vec3 material_color, vec3 cam_dir, vec3 light_normal, vec3 light_color, float light_strength)

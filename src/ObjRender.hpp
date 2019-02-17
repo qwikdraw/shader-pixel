@@ -35,6 +35,7 @@ class ObjRender
 	void _makeVAO();
 
 	void _loadTexture(const std::string& filepath);
+	void _render(const CameraData& cam_data);
 
 public:
 

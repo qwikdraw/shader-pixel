@@ -28,14 +28,14 @@ MAKEFLAGS=-j4
 CPPFLAGS = -std=c++14 -Wall -Wextra -Werror -Wno-unused-parameter \
 -Wno-unused-variable \
 $(shell pkg-config --cflags glfw3 glm) \
--I lib/stb \
+-I lib/stb -I lib/tiny_obj_loader \
 -g -O3 -march=native \
 #-fsanitize=address -fsanitize=undefined
 
 LDFLAGS = -framework OpenGl \
 $(shell pkg-config --libs glfw3 glm) \
  -pipe \
-#-fsanitize=address -fsanitize=undefined
+-fsanitize=address -fsanitize=undefined
 
 all: $(OBJ_DIR) $(NAME)
 

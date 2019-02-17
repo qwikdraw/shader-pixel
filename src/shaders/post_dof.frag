@@ -15,6 +15,7 @@ void main(void) {
 	#define SAMPLE(x,y) texture(color_buffer, uv + vec2(x, y)).rgb
 
 	vec3 center = texture(color_buffer, uv).rgb;
+
 	float x = tx.x;
 	float y = tx.y;
 	float x2 = 2.0 * x;

@@ -1,15 +1,14 @@
 #include "ShaderObj.hpp"
 
-ShaderObj::ShaderObj(const std::string& fragpath)
+ShaderObj::ShaderObj(const std::string& fragpath) :
+_program(_vertexPath, fragpath, true)
 {
-	_program = new ShadingProgram(_vertexPath, fragpath, true);
 	_loadArrayBuffers();
 	_makeVAO();
 }
 
 ShaderObj::~ShaderObj()
 {
-	delete _program;
 	glDeleteVertexArrays(1, &_VAO);
 	glDeleteBuffers(1, &_cubeID);
 }
@@ -86,44 +85,44 @@ void ShaderObj::_render(
 	const CameraData& cam_data,
 	const glm::mat4& transform)
 {
-	_program->Use();
+	_program.Use();
 	glBindVertexArray(_VAO);
 
 	if (_texID)
 	{
 		glBindTexture(GL_TEXTURE_2D, _texID);
 		glActiveTexture(GL_TEXTURE0);
-		glUniform1i(_program->Uniform("tex"), 0);
+		glUniform1i(_program.Uniform("tex"), 0);
 	}
 
 	int size = Light::positions.size();
 	size = std::min(size, 99);
 	if (size)
 	{
-		glUniform3fv(_program->Uniform("lightPos"),
+		glUniform3fv(_program.Uniform("lightPos"),
 			size,
 			reinterpret_cast<const GLfloat*>(&(Light::positions[0].x)));
-		glUniform3fv(_program->Uniform("lightColor"),
+		glUniform3fv(_program.Uniform("lightColor"),
 			size,
 			reinterpret_cast<const GLfloat*>(&(Light::colors[0].x)));
 	}
-	glUniform1i(_program->Uniform("lightNum"), size);
+	glUniform1i(_program.Uniform("lightNum"), size);
 
-	glUniform1f(_program->Uniform("time"), _total_time);
+	glUniform1f(_program.Uniform("time"), _total_time);
 
-	glUniform3fv(_program->Uniform("camPos"), 1, &cam_data.position[0]);
+	glUniform3fv(_program.Uniform("camPos"), 1, &cam_data.position[0]);
 
 	glm::mat4 screenToWorld = glm::inverse(cam_data.worldToScreen);
 
-	glUniformMatrix4fv(_program->Uniform("screenToWorld"), 1, GL_FALSE,
+	glUniformMatrix4fv(_program.Uniform("screenToWorld"), 1, GL_FALSE,
 		glm::value_ptr(screenToWorld));
-	glUniformMatrix4fv(_program->Uniform("worldToScreen"), 1, GL_FALSE,
+	glUniformMatrix4fv(_program.Uniform("worldToScreen"), 1, GL_FALSE,
 		glm::value_ptr(cam_data.worldToScreen));
 
 	glm::mat4 inverse_transform = glm::inverse(transform);
-	glUniformMatrix4fv(_program->Uniform("inverseTransform"), 1, GL_FALSE,
+	glUniformMatrix4fv(_program.Uniform("inverseTransform"), 1, GL_FALSE,
 		glm::value_ptr(inverse_transform));
-	glUniformMatrix4fv(_program->Uniform("transform"), 1, GL_FALSE,
+	glUniformMatrix4fv(_program.Uniform("transform"), 1, GL_FALSE,
 		glm::value_ptr(transform));
 
 	glEnable(GL_CULL_FACE);
