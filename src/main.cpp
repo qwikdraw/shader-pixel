@@ -88,8 +88,8 @@ int	main(void)
 		Transparency::RenderAll();
 
 		window.RemoveRenderMask();
-		post.Render(postBuffer, clock.Total()                                                                                                                                                                                                                     );
 
+		post.Render(postBuffer, clock.Total());
 
 		fps.Render(window);
 
