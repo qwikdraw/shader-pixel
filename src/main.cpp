@@ -42,7 +42,7 @@ int	main(void)
 
 	RenderTarget lowRes(200, 200);
 
-	PostProcess post("src/shaders/post_vignette.frag");
+	PostProcess post("src/shaders/post_combined.frag");
 
 	ObjRender scene("sky_island.obj");
 
@@ -101,9 +101,6 @@ int	main(void)
 			lastSecond = clock.Total();
 			ShadingProgram::UpdateAll();
 			auto data = cam.GetCameraData();
-			std::cout << data.position.x << " "
-				<< data.position.y << " "
-				<< data.position.z << std::endl;
 		}
 
 		window.Clear();
@@ -147,6 +144,12 @@ int	main(void)
 		{
 			shader.first->Render(cam.GetCameraData(), shader.second, clock.Total());
 		}
+
+		ShadingProgram& post_program = post.GetProgram();
+		post_program.Use();
+		glUniform1i(post_program.Uniform("key_1"), window.Key('1'));
+		glUniform1i(post_program.Uniform("key_2"), (int)window.Key('2'));
+		glUniform1i(post_program.Uniform("key_3"), (int)window.Key('3'));
 
 		sky.Render(cam.GetCameraData());
 		Transparency::RenderAll();

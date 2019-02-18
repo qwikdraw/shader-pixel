@@ -18,13 +18,8 @@ out vec4 frag_color;
 
 const int MARCH_MAX = 255;
 const float MARCH_MIN_DIST = 0.0f;
-const float MARCH_MAX_DIST = 20.0f;
+const float MARCH_MAX_DIST = 256.0f;
 const float EPSILON = 0.001f;
-
-const vec4 materials[2] = vec4[](
-    vec4(0.0), // Null Color
-    vec4(1.0, 0.0, 0.1, 1.0) // Maroon
-);
 
 // Mandelbox
 const float ITERS = 6;
@@ -35,8 +30,7 @@ const vec4 scalevec = vec4(SCALE, SCALE, SCALE, abs(SCALE)) / MR2;
 const float C1 = abs(SCALE - 1.0), C2 = pow(abs(SCALE), float(1 - ITERS));
 
 // Knightly's formula
-float mandelbox(vec3 position, out int material_id) {
-    material_id = 1;
+float mandelbox(vec3 position) {
     vec4 p = vec4(position.xyz, 1.0), p0 = vec4(position.xyz, 1.0);
     for (int i = 0; i < ITERS; i++) {
         p.xyz = clamp(p.xyz, -1.0, 1.0) * 2.0 - p.xyz;
@@ -48,21 +42,37 @@ float mandelbox(vec3 position, out int material_id) {
 }
 
 // Distance field representing the scene.
-float scene(vec3 p, out int material_id) {
-    return mandelbox(p * 10.0, material_id) / 10.0;
+float scene(vec3 p) {
+    return mandelbox(p * 10.0) / 10.0;
 }
 
-float ray_march(vec3 ro, vec3 rv, out int material_id) {
-    float depth = MARCH_MIN_DIST;
+float ray_march(vec3 ro, vec3 rv, out int steps) {
+    float dist1 = dot(rv, ro);
+    float discrim = dist1 * dist1 - dot(ro, ro) + 1;
+
+    if (discrim < 0.0)
+        discard;
+    discrim = sqrt(discrim);
+    float dist2 = -dist1 - discrim;
+    dist1 = -dist1 + discrim;
+
+    float depth = max(min(dist1, dist2), 0.0);
+    float max_depth = max(dist1, dist2);
+    if (max_depth < 0.0)
+        discard;
+
     for (int i = 0; i < MARCH_MAX; ++i)
     {
-        float min_distance = scene(ro + rv * depth, material_id);
+        float min_distance = scene(ro + rv * depth);
         depth += min_distance;
-        if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
+        if (min_distance < EPSILON || depth >= max_depth) {
+            steps = i;
             break;
         }
     }
-    return min(depth, MARCH_MAX_DIST);
+    if (depth > max_depth)
+        discard;
+    return depth;
 }
 
 /* Lighting */
@@ -72,35 +82,32 @@ float ray_march(vec3 ro, vec3 rv, out int material_id) {
 #if 1
 
 vec3 get_normal(vec3 p) {
-    int _;
-    float ref = scene(p, _);
+    float ref = scene(p);
     return normalize(vec3(
-        scene(vec3(p.x + EPSILON, p.y, p.z), _) - ref,
-        scene(vec3(p.x, p.y + EPSILON, p.z), _) - ref,
-        scene(vec3(p.x, p.y, p.z + EPSILON), _) - ref
+        scene(vec3(p.x + EPSILON, p.y, p.z)) - ref,
+        scene(vec3(p.x, p.y + EPSILON, p.z)) - ref,
+        scene(vec3(p.x, p.y, p.z + EPSILON)) - ref
     ));
 }
 
 #else
 
 vec3 get_normal(vec3 p) {
-    int _;
     return normalize(vec3(
-        scene(vec3(p.x + EPSILON, p.y, p.z), _) - scene(vec3(p.x - EPSILON, p.y, p.z), _),
-        scene(vec3(p.x, p.y + EPSILON, p.z), _) - scene(vec3(p.x, p.y - EPSILON, p.z), _),
-        scene(vec3(p.x, p.y, p.z  + EPSILON), _) - scene(vec3(p.x, p.y, p.z - EPSILON), _)
+        scene(vec3(p.x + EPSILON, p.y, p.z)) - scene(vec3(p.x - EPSILON, p.y, p.z)),
+        scene(vec3(p.x, p.y + EPSILON, p.z)) - scene(vec3(p.x, p.y - EPSILON, p.z)),
+        scene(vec3(p.x, p.y, p.z  + EPSILON)) - scene(vec3(p.x, p.y, p.z - EPSILON))
     ));
 }
 
 #endif
 
-float ambient_occulsion(vec3 normal, vec3 pos)
+float ambient_occulsion(vec3 normal, vec3 pos, int steps)
 {
-    int _;
     float x = 0.0;
-    x += 0.1 - scene(pos + normal * 0.1, _);
-    x += 0.3 - scene(pos + normal * 0.3, _);
-    x += 0.5 - scene(pos + normal * 0.5, _);
+    x += 0.1 - scene(pos + normal * 0.1);
+    x += 0.2 - scene(pos + normal * 0.2);
+    x += 0.3 - scene(pos + normal * 0.3);
     return 1.0 - x;
 }
 
@@ -122,33 +129,16 @@ vec3 phong(vec3 normal, vec3 material_color, vec3 cam_dir, vec3 light_normal, ve
     return (diffuse_color + specular_color) * light_strength / distance;
 }
 
-float soft_shadow(vec3 pos, vec3 light_normal, float softness)
-{
-    float res = 1.0;
-    int _;
-    light_normal = normalize(light_normal);
-    for (float depth = EPSILON * 2.0; depth < 20.0;)
-    {
-        float min_distance = scene(pos + light_normal * depth, _);
-        if (min_distance < 0.001)
-            return 0.02;
-        res = min(res, softness * min_distance / depth);
-        depth += min_distance;
-    }
-    return res;
-}
-
 void shader(vec3 ro, vec3 rv) {
 
-    int material_id;
-    float dist = ray_march(ro, rv, material_id);
-    if (dist > MARCH_MAX_DIST - EPSILON)
-        discard;
+    int steps;
+    float dist = ray_march(ro, rv, steps);
+
     vec3 pos = ro + rv * dist;
 
     vec3 normal = get_normal(pos);
 
-    vec4 object_color = materials[material_id];
+    vec4 object_color = vec4(1.0, 0.0, 0.1, 1.0);
 
     vec3 light_normal = vec3(0.0, 5.0, 0.0) - pos;
 
@@ -161,8 +151,7 @@ void shader(vec3 ro, vec3 rv) {
         40.0 // Light strength
     );
 
-    color *= ambient_occulsion(normal, pos);
-    //color *= soft_shadow(pos, light_normal, 4.0);
+    color *= ambient_occulsion(normal, pos, steps);
     frag_color = vec4(pow(color, vec3(0.4545)), object_color.w);
 }
 

@@ -90,8 +90,8 @@ void ShaderObj::_render(
 
 	if (_texID)
 	{
-		glBindTexture(GL_TEXTURE_2D, _texID);
 		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, _texID);
 		glUniform1i(_program.Uniform("tex"), 0);
 	}
 

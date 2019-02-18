@@ -62,3 +62,8 @@ void PostProcess::Render(RenderTarget& post, double time)
 {
 	Render(post._texture, post._depth, float(post._x), float(post._y), time);
 }
+
+ShadingProgram& PostProcess::GetProgram()
+{
+	return _program;
+}

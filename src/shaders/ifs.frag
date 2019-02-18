@@ -57,51 +57,63 @@ float ifs(vec3 p){
 }
 
 // Distance field representing our scene.
-float scene(vec3 p, out int material_id) {
-    material_id = 1;
+float scene(vec3 p) {
     // Scale down 30% and translate 1.0 on x to center in box
     return ifs((p + vec3(1.0, 0.0, 0.0)) * 1.3) / 1.3;
 }
 
 
-float ray_march(vec3 ro, vec3 rv, out int material_id, out int steps) {
-    float depth = MARCH_MIN_DIST;
+float ray_march(vec3 ro, vec3 rv, out int steps) {
+    float dist1 = dot(rv, ro);
+    float discrim = dist1 * dist1 - dot(ro, ro) + 1;
+
+    if (discrim < 0.0)
+        discard;
+    discrim = sqrt(discrim);
+    float dist2 = -dist1 - discrim;
+    dist1 = -dist1 + discrim;
+
+    float depth = max(min(dist1, dist2), 0.0);
+    float max_depth = max(dist1, dist2);
+    if (max_depth < 0.0)
+        discard;
+
     for (int i = 0; i < MARCH_MAX; ++i)
     {
-        float min_distance = scene(ro + rv * depth, material_id);
+        float min_distance = scene(ro + rv * depth);
         depth += min_distance;
-        if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
+        if (min_distance < EPSILON || depth >= max_depth) {
             steps = i;
             break;
         }
     }
-    return min(depth, MARCH_MAX_DIST);
+    if (depth > max_depth)
+        discard;
+    return depth;
 }
 
 /* Lighting */
 
 // 1 for less accurate but faster normal, 0 for accurate but slower version.
 
-#if 0
+#if 1
 
 vec3 get_normal(vec3 p) {
-    int _;
-    float ref = scene(p, _);
+    float ref = scene(p);
     return normalize(vec3(
-        scene(vec3(p.x + EPSILON, p.y, p.z), _) - ref,
-        scene(vec3(p.x, p.y + EPSILON, p.z), _) - ref,
-        scene(vec3(p.x, p.y, p.z + EPSILON), _) - ref
+        scene(vec3(p.x + EPSILON, p.y, p.z)) - ref,
+        scene(vec3(p.x, p.y + EPSILON, p.z)) - ref,
+        scene(vec3(p.x, p.y, p.z + EPSILON)) - ref
     ));
 }
 
 #else
 
 vec3 get_normal(vec3 p) {
-    int _;
     return normalize(vec3(
-        scene(vec3(p.x + EPSILON, p.y, p.z), _) - scene(vec3(p.x - EPSILON, p.y, p.z), _),
-        scene(vec3(p.x, p.y + EPSILON, p.z), _) - scene(vec3(p.x, p.y - EPSILON, p.z), _),
-        scene(vec3(p.x, p.y, p.z  + EPSILON), _) - scene(vec3(p.x, p.y, p.z - EPSILON), _)
+        scene(vec3(p.x + EPSILON, p.y, p.z)) - scene(vec3(p.x - EPSILON, p.y, p.z)),
+        scene(vec3(p.x, p.y + EPSILON, p.z)) - scene(vec3(p.x, p.y - EPSILON, p.z)),
+        scene(vec3(p.x, p.y, p.z  + EPSILON)) - scene(vec3(p.x, p.y, p.z - EPSILON))
     ));
 }
 
@@ -109,11 +121,10 @@ vec3 get_normal(vec3 p) {
 
 float ambient_occulsion(vec3 normal, vec3 pos, int steps)
 {
-    int _;
     float x = 0.0;
-    x += 0.1 - scene(pos + normal * 0.1, _);
-    x += 0.2 - scene(pos + normal * 0.2, _);
-    x += 0.3 - scene(pos + normal * 0.3, _);
+    x += 0.1 - scene(pos + normal * 0.1);
+    x += 0.2 - scene(pos + normal * 0.2);
+    x += 0.3 - scene(pos + normal * 0.3);
     float t = (MARCH_MAX - (pow(steps, 1.4))) / MARCH_MAX;
     return mix(1.0 - x, t, 0.5);
 }
@@ -144,7 +155,7 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
     light_normal = normalize(light_normal);
     for (float depth = EPSILON * 2.0; depth < 20.0;)
     {
-        float min_distance = scene(pos + light_normal * depth, _);
+        float min_distance = scene(pos + light_normal * depth);
         if (min_distance < EPSILON / 2.0)
             return 0.002;
         res = min(res, softness * min_distance / depth);
@@ -155,16 +166,14 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
 
 void shader(vec3 ro, vec3 rv)
 {
-    int material_id;
     int steps;
-    float dist = ray_march(ro, rv, material_id, steps);
-    if (dist > MARCH_MAX_DIST - EPSILON)
-        discard;
+    float dist = ray_march(ro, rv, steps);
+
     vec3 pos = ro + rv * dist;
 
     vec3 normal = get_normal(pos);
 
-    vec4 object_color = materials[material_id];
+    vec4 object_color = vec4(0.2, 0.0, 1.0, 1.0);
 
     vec3 light_normal = vec3(0.0, 5.0, 0.0) - pos; 
 

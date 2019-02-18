@@ -24,6 +24,7 @@ public:
 	~PostProcess();
 
 	void Render(GLuint textureID, GLuint depthID, float width, float height, double time);
+	ShadingProgram& GetProgram();
 
 	void Render(RenderTarget& post, double time);
 };

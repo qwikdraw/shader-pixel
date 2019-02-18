@@ -75,41 +75,40 @@ float scene(vec3 p) {
     return mandelbulb(p * 2.0) / 2.0;
 }
 
-float bound_sphere(vec3 ro, vec3 rv)
-{
+float ray_march(vec3 ro, vec3 rv, out int steps) {
     float dist1 = dot(rv, ro);
     float discrim = dist1 * dist1 - dot(ro, ro) + 1;
 
-    if (discrim < EPSILON)
-        return MARCH_MAX_DIST;
-
+    if (discrim < 0.0)
+        discard;
     discrim = sqrt(discrim);
     float dist2 = -dist1 - discrim;
     dist1 = -dist1 + discrim;
-    float dist = min(dist1, dist2);
 
-    return max(dist, MARCH_MIN_DIST);
-}
+    float depth = max(min(dist1, dist2), 0.0);
+    float max_depth = max(dist1, dist2);
+    if (max_depth < 0.0)
+        discard;
 
-float ray_march(vec3 ro, vec3 rv, out int steps) {
-    float depth = bound_sphere(ro, rv);
     for (int i = 0; i < MARCH_MAX; ++i)
     {
         float min_distance = scene(ro + rv * depth);
         depth += min_distance;
-        if (min_distance < EPSILON || depth >= MARCH_MAX_DIST) {
+        if (min_distance < EPSILON || depth >= max_depth) {
             steps = i;
             break;
         }
     }
-    return min(depth, MARCH_MAX_DIST);
+    if (depth > max_depth)
+        discard;
+    return depth;
 }
 
 /* Lighting */
 
 // 1 for less accurate but faster normal, 0 for accurate but slower version.
 
-#if 1
+#if 0
 
 vec3 get_normal(vec3 p) {
     float ref = scene(p);
@@ -168,7 +167,7 @@ float soft_shadow(vec3 pos, vec3 light_normal, float softness)
     {
         float min_distance = scene(pos + light_normal * depth);
         if (min_distance < 0.001)
-            return 0.02;
+            return 0.01;
         res = min(res, softness * min_distance / depth);
         depth += min_distance;
     }
@@ -179,8 +178,7 @@ void shader(vec3 ro, vec3 rv) {
 
     int steps;
     float dist = ray_march(ro, rv, steps);
-    if (dist > MARCH_MAX_DIST - EPSILON)
-        discard;
+
     vec3 pos = ro + rv * dist;
 
     vec3 normal = get_normal(pos);
