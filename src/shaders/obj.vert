@@ -9,16 +9,14 @@ uniform mat4 transform;
 uniform vec3 campos;
 
 out	vec3 normal_v;
-out vec3 dir_v;
-out float dist_v;
 out vec2 uv_v;
+out vec3 vertex_v;
 
 void	main()
 {
-    gl_Position = worldToScreen * transform * vec4(vertex, 1);
-    normal_v = normal;
-    dir_v = vec3(transform * vec4(vertex, 1)) - campos;
-    dist_v = length(dir_v);
-    dir_v = normalize(dir_v);
+	vec4 v = transform * vec4(vertex, 1);
+    gl_Position = worldToScreen * v;
+    normal_v = vec3(transform * vec4(normal, 0));
     uv_v = uv;
+	vertex_v = vec3(v);
 }

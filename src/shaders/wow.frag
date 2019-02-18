@@ -11,6 +11,7 @@ uniform mat4 transform;
 uniform vec3 lightPos[MAX_LIGHTS];
 uniform vec3 lightColor[MAX_LIGHTS];
 uniform int lightNum;
+uniform vec3 u_position;
 
 uniform float time;
 
@@ -127,7 +128,7 @@ void shader(vec3 rp, vec3 rv)
 		{
 			vec3 mcol = metacol(rp);
 			vec3 norm = metanormal(rp);
-			color = vec4(phong(norm, mcol, rv, vec3(1) * rmatrix(vec3(0, 1, 0), time), vec3(1), 2.2), 1);
+			color = vec4(phong(norm, mcol, rv, normalize(lightPos[0] - u_position), vec3(1), 0.9), 1);
 			return;
 		}
 		float mv = RAY_STEP * (1 + 0.7 * rand(rp.xy));

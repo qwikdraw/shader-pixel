@@ -125,6 +125,9 @@ void ShaderObj::_render(
 	glUniformMatrix4fv(_program.Uniform("transform"), 1, GL_FALSE,
 		glm::value_ptr(transform));
 
+	glm::vec3 pos = glm::vec3(transform * glm::vec4(0, 0, 0, 1));
+	glUniform3fv(_program.Uniform("u_position"), 1, &pos.x);
+
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);

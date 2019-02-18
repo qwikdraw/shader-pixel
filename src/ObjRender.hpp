@@ -3,6 +3,7 @@
 #include "FreeCamera.hpp"
 #include "Texture.hpp"
 #include "ShadingProgram.hpp"
+#include "Light.hpp"
 
 #include "graphics_utilities.hpp"
 #include <string>

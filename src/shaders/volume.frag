@@ -13,6 +13,7 @@ uniform vec3 lightColor[MAX_LIGHTS];
 uniform int lightNum;
 
 uniform float time;
+uniform vec3 u_position;
 
 out vec4 color;
 
@@ -120,7 +121,7 @@ void shader(vec3 rp, vec3 rv)
 	float travel_dist = tmp - d;
 	rp = rp + rv * d;
 	vec4 fog = vec4(0);
-	vec3 lightpos = vec3(1);
+	vec3 lightpos = normalize(lightPos[0] - u_position) * 1.5;
 	while (true)
 	{
 		if (travel_dist < 0)
