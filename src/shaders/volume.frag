@@ -16,7 +16,7 @@ uniform float time;
 
 out vec4 color;
 
-#define RAY_STEP 0.02
+#define RAY_STEP 0.035
 
 vec3 o1 = vec3(sin(time * 1.24) * 0.4, sin(time * 0.41) * 0.3, 0);
 vec3 o2 = vec3(cos(time) * 0.3);
@@ -27,43 +27,9 @@ float rand(vec2 n)
 	return fract(sin(dot(n, vec2(0.9898, 0.1414))) * 214124.5453);
 }
 
-float metaval(vec3 p)
+float shape_dist(vec3 p)
 {
-	return 1 / dot(p, p);
-}
-
-bool metasurface(vec3 p)
-{
-	vec3 p1 = p - o1;
-	vec3 p2 = p - o2;
-	vec3 p3 = p - o3;
-
-	return metaval(p1) + metaval(p2) + metaval(p3) > 29 + sin(time * 1.234) * 4;
-}
-
-vec3 metanormal(vec3 p)
-{
-	vec3 p1 = p - o1;
-	vec3 p2 = p - o2;
-	vec3 p3 = p - o3;
-
-	return normalize(
-		normalize(p1) * metaval(p1) +
-		normalize(p2) * metaval(p2) +
-		normalize(p3) * metaval(p3));
-}
-
-vec3 metacol(vec3 p)
-{
-	vec3 p1 = p - o1;
-	vec3 p2 = p - o2;
-	vec3 p3 = p - o3;
-
-	vec3 mv = vec3(metaval(p1), metaval(p2), metaval(p3));
-	float sum = mv.x + mv.y + mv.z;
-	vec3 raw_c = mv / sum;
-
-	return raw_c / (raw_c + sum * 0.003);
+	return length(p) - 0.2;
 }
 
 vec3 phong(vec3 normal, vec3 material_color, vec3 cam_dir, vec3 light_normal, vec3 light_color, float light_strength)
@@ -96,6 +62,40 @@ mat3 rmatrix(vec3 axis, float angle)
                 oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
 }
 
+float shape_intersect(vec3 rp, vec3 rv)
+{
+	float dist1 = dot(rv, rp);
+	float discrim = dist1 * dist1 - dot(rp, rp) + 0.04;
+
+	if (discrim < 0)
+		return -1;
+	discrim = sqrt(discrim);
+	float dist2 = -dist1 - discrim;
+	dist1 = -dist1 + discrim;
+
+	float dist = min(dist1, dist2);
+	if (dist < 0)
+		dist = max(dist1, dist2);
+	if (dist < 0)
+		return -1;
+	return dist;
+}
+
+vec4 get_fog(vec3 p, vec3 lightpos)
+{
+	vec3 v = normalize(lightpos - p);
+	vec3 c;
+	float d = shape_intersect(p, v);
+	float l = length(lightpos - p);
+	if (d > 0 && d < l)
+		c = vec3(0);
+	else
+		c = vec3(1);
+	c *= 1 / (0.25 * l * l);
+	c = c / (0.1 + c);
+	return vec4(c, (1 - length(p)));
+}
+
 void shader(vec3 rp, vec3 rv)
 {
 	float dist1 = dot(rv, rp);
@@ -119,21 +119,33 @@ void shader(vec3 rp, vec3 rv)
 	}
 	float travel_dist = tmp - d;
 	rp = rp + rv * d;
+	vec4 fog = vec4(0);
+	vec3 lightpos = vec3(1);
 	while (true)
 	{
 		if (travel_dist < 0)
 			break;
-		if (metasurface(rp))
+		if (shape_dist(rp) < 0.001)
 		{
-			vec3 mcol = metacol(rp);
-			vec3 norm = metanormal(rp);
-			color = vec4(phong(norm, mcol, rv, vec3(1) * rmatrix(vec3(0, 1, 0), time), vec3(1), 2.2), 1);
+			vec3 shapecol = phong(
+				normalize(rp),
+				vec3(1, 0, 0),
+				rv,
+				lightpos - rp,
+				vec3(1),
+				2);
+			color = vec4(mix(shapecol, fog.xyz, fog.w), 1);
 			return;
 		}
 		float mv = RAY_STEP * (1 + 0.7 * rand(rp.xy));
+		vec4 fogval = get_fog(rp, lightpos);
+
+		fogval.w *= mv;
+		fog = vec4(mix(fog.xyz, fogval.xyz, pow(1 - fog.w, 10)), fog.w + (1 - fog.w) * fogval.w);
 		travel_dist -= mv;
 		rp += rv * mv;
 	}
+	color = fog;
 }
 
 void main()

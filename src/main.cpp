@@ -40,21 +40,54 @@ int	main(void)
 
 	RenderTarget postBuffer(1920, 1080);
 
+	RenderTarget lowRes(200, 200);
+
 	PostProcess post("src/shaders/post_vignette.frag");
 
 	ObjRender scene("sky_island.obj");
 
+	// ordinary shaders that don't need special treatment
 	std::vector<std::pair<ShaderObj*, glm::mat4>> shaders {
-		{new ShaderObj("src/shaders/ifs.frag"), glm::translate(glm::mat4(1.0), glm::vec3(20.0, 8.0, 0.0))},
-		{new ShaderObj("src/shaders/mandelbulb.frag"), glm::translate(glm::mat4(1.0), glm::vec3(20.0, 8.0, 4.0))},
-		{new ShaderObj("src/shaders/mandelbox.frag"), glm::translate(glm::mat4(1.0), glm::vec3(20.0, 8.0, -4.0))},
-		{new ShaderObj("src/shaders/portal.frag"), // Scaled so you can easily go inside
-			glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(15.0, 8.0, -4.0)), glm::vec3(2.0))},
-		{new ShaderObj("src/shaders/water.frag"),
-			glm::scale(glm::translate(glm::mat4(1.0), glm::vec3(20.0, -0.15, 0.0)), glm::vec3(32.0))}
+		{
+			new ShaderObj("src/shaders/ifs.frag"),
+			glm::scale(
+				glm::translate(glm::mat4(1.0), glm::vec3(-2, 7, -69)),
+				glm::vec3(2.0))
+		},
+		{
+			new ShaderObj("src/shaders/mandelbulb.frag"),
+			glm::scale(
+				glm::translate(glm::mat4(1.0), glm::vec3(-61, 6.5, -24)),
+				glm::vec3(2.0))
+		},
+		{
+			new ShaderObj("src/shaders/mandelbox.frag"),
+			glm::scale(
+				glm::translate(glm::mat4(1.0), glm::vec3(-60, 9, 25)),
+				glm::vec3(2.0))
+		},
+		{
+			new ShaderObj("src/shaders/wow.frag"),
+			glm::scale(
+				glm::translate(glm::mat4(1.0), glm::vec3(28, 3.9, 4.8)),
+				glm::vec3(2.0))
+		},
+		{
+			new ShaderObj("src/shaders/volume.frag"),
+			glm::scale(
+				glm::translate(glm::mat4(1.0), glm::vec3(61, 7.2, 34)),
+				glm::vec3(2.0))
+		},
+		{
+			new ShaderObj("src/shaders/portal.frag"),
+			glm::scale(
+				glm::translate(glm::mat4(1.0), glm::vec3(0, 6.2, 42)),
+				glm::vec3(5.0))
+		}
 	};
 
-	//ShaderObj shader("src/shaders/ifs.frag");
+	ShaderObj water("src/shaders/water.frag");
+	ShaderObj buffer("src/shaders/buffer.frag");
 
 	while (!window.ShouldClose())
 	{
@@ -67,26 +100,56 @@ int	main(void)
 		{
 			lastSecond = clock.Total();
 			ShadingProgram::UpdateAll();
+			auto data = cam.GetCameraData();
+			std::cout << data.position.x << " "
+				<< data.position.y << " "
+				<< data.position.z << std::endl;
 		}
 
 		window.Clear();
 		cam.Update(clock.Delta());
 
-		postBuffer.Use();
+		// render the scene and sky and water to a low res render target
+		lowRes.Use();
+		scene.Render(cam.GetCameraData(), glm::mat4(1.0));
+		sky.Render(cam.GetCameraData());
+		water.Render(cam.GetCameraData(),
+			glm::scale(
+				glm::translate(glm::mat4(1.0), glm::vec3(20.0, -0.15, 0.0)),
+				glm::vec3(32.0)),
+			clock.Total(),
+			true);
+		window.RemoveRenderMask();
 
+		postBuffer.Use();
 
 		scene.Render(cam.GetCameraData(), glm::mat4(1.0));
 
+		// render the special shaders
+		buffer.Render(cam.GetCameraData(),
+			glm::scale(
+				glm::translate(glm::mat4(1),
+					glm::vec3(55, 12, -40)),
+				glm::vec3(4.0)) *
+			glm::rotate(float(clock.Total()), glm::vec3(0, 1, 0)),
+			clock.Total(),
+			false,
+			lowRes.TextureID());
+		water.Render(cam.GetCameraData(),
+			glm::scale(
+				glm::translate(glm::mat4(1.0), glm::vec3(20.0, -0.15, 0.0)),
+				glm::vec3(32.0)),
+			clock.Total(),
+			true);
+
+		// render ordinary shaders
 		for (auto& shader : shaders)
 		{
 			shader.first->Render(cam.GetCameraData(), shader.second, clock.Total());
 		}
-		//shader.Render(cam.GetCameraData(), glm::translate(glm::mat4(1), glm::vec3(20, 8, 0)), clock.Total());
 
 		sky.Render(cam.GetCameraData());
-
 		Transparency::RenderAll();
-
 		window.RemoveRenderMask();
 
 		post.Render(postBuffer, clock.Total());
