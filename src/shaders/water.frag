@@ -16,10 +16,10 @@ uniform float time;
 
 out vec4 frag_color;
 
-const int MARCH_MAX = 128;
+const int MARCH_MAX = 100;
 const float MARCH_MIN_DIST = 0.0f;
 const float MARCH_MAX_DIST = 256.0f;
-const float EPSILON = 0.001f;
+const float EPSILON = 0.005f;
 
 
 

@@ -39,7 +39,6 @@ void ShadingProgram::_recompileProgram(bool keepVert, bool keepFrag)
 	if (keepVert && keepFrag)
 		return;
 
-	std::cout << "program changing" << std::endl;
 	if (!keepVert)
 	{
 		glDeleteShader(_vertexShaderID);
