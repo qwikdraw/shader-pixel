@@ -34,7 +34,7 @@ int	main(void)
 
 	ObjRender::Init();
 
-	Light l2(glm::vec3(0, 10, 0), glm::vec3(0.4, 0.9, 0.6));
+	Light* light = new Light(glm::vec3(0, 100, 0), glm::vec3(1, 1, 1));
 
 	int lastSecond = 0;
 
@@ -91,6 +91,12 @@ int	main(void)
 
 	while (!window.ShouldClose())
 	{
+		if (window.Key('L'))
+		{
+			delete light;
+			auto camdata = cam.GetCameraData();
+			light = new Light(camdata.position, glm::vec3(1));
+		}
 		clock.Step();
 
 		if ((err = glGetError()) != GL_NO_ERROR)

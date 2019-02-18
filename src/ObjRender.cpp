@@ -212,6 +212,18 @@ void ObjRender::Render(
 			glm::value_ptr(transform));
 		glDrawArrays(GL_TRIANGLES, 0, _vertexCount);
 	}
+	int size = Light::positions.size();
+	size = std::min(size, 99);
+	if (size)
+	{
+		glUniform3fv(_program->Uniform("lightPos"),
+			size,
+			reinterpret_cast<const GLfloat*>(&(Light::positions[0].x)));
+		glUniform3fv(_program->Uniform("lightColor"),
+			size,
+			reinterpret_cast<const GLfloat*>(&(Light::colors[0].x)));
+	}
+	glUniform1i(_program->Uniform("lightNum"), size);
 	glDisable(GL_CULL_FACE);
 }
 
@@ -219,8 +231,7 @@ void ObjRender::Render(
 	const CameraData& cam_data,
 	const glm::mat4& transform)
 {
-	_render(cam_data);
-	glUniformMatrix4fv(_program->Uniform("transform"), 1, GL_FALSE, glm::value_ptr(transform));
-	glDrawArrays(GL_TRIANGLES, 0, _vertexCount);
-	glDisable(GL_CULL_FACE);
+	std::vector<glm::mat4> v;
+	v.push_back(transform);
+	Render(cam_data, v);
 }
