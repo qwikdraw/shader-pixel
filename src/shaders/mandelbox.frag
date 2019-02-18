@@ -150,7 +150,7 @@ void shader(vec3 ro, vec3 rv) {
 
     vec4 object_color = materials[material_id];
 
-    vec3 light_normal = vec3(0.0, 5.0, 0.0) - pos; 
+    vec3 light_normal = vec3(0.0, 5.0, 0.0) - pos;
 
     vec3 color = phong(
         normal, // object normal
