@@ -35,7 +35,7 @@ $(shell pkg-config --cflags glfw3 glm) \
 LDFLAGS = -framework OpenGl \
 $(shell pkg-config --libs glfw3 glm) \
  -pipe \
--fsanitize=address -fsanitize=undefined
+#-fsanitize=address -fsanitize=undefined
 
 all: $(OBJ_DIR) $(NAME)
 

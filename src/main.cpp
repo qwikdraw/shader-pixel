@@ -99,8 +99,8 @@ int	main(void)
 		}
 		clock.Step();
 
-		if ((err = glGetError()) != GL_NO_ERROR)
-			std::cerr << "glerror: "<< err << std::endl;
+		//if ((err = glGetError()) != GL_NO_ERROR)
+		//	std::cerr << "glerror: "<< err << std::endl;
 
 		if (int(clock.Total()) > lastSecond)
 		{
