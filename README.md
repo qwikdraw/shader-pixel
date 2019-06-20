@@ -1,6 +1,6 @@
 # Shader Pixel
-Integrating objects rendered in the fragment shader with a polygon scene
-In C++ and Opengl
+Experimental rendering system integrating objects rendered in the fragment shader with a polygon scene
+in C++ and OpenGL 4
 Most objects are rendered with a raymarching technique, but the system supports
 any kind of rendering possible from the fragment shader.
 
